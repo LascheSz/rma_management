@@ -19,6 +19,10 @@ class RmaAuditLog(models.Model):
             ('deadline_confirmed', 'Fristüberschreitung bestätigt'),
             ('receipt_created', 'RMA-Eingang erstellt'),
             ('split_completed', 'Mengenprüfung abgeschlossen'),
+            ('bware_ticket_created', 'B-Ware Helpdesk-Ticket erstellt'),
+            ('bware_ticket_assigned', 'B-Ware Helpdesk-Ticket zugewiesen'),
+            ('bware_ticket_qs_done', 'B-Ware QS abgeschlossen'),
+            ('bware_ticket_decision', 'B-Ware Entscheidung getroffen'),
         ],
         string='Aktion',
         required=True,
@@ -34,6 +38,7 @@ class RmaAuditLog(models.Model):
     )
     sale_order_id = fields.Many2one('sale.order', string='Verkaufsauftrag', readonly=True)
     picking_id = fields.Many2one('stock.picking', string='RMA Beleg', readonly=True)
+    helpdesk_ticket_id = fields.Many2one('helpdesk.ticket', string='Helpdesk Ticket', readonly=True)
     generated_picking_ids = fields.Many2many(
         'stock.picking',
         'rma_audit_log_generated_picking_rel',
@@ -51,11 +56,11 @@ class RmaAuditLog(models.Model):
     )
     details = fields.Text(string='Details', readonly=True)
 
-    @api.depends('sale_order_id.partner_id', 'picking_id.partner_id')
+    @api.depends('sale_order_id.partner_id', 'picking_id.partner_id', 'helpdesk_ticket_id.partner_id')
     def _compute_partner_id(self):
         """Ermittelt den Kunden aus Auftrag oder RMA-Beleg für Filter und Sichten."""
         for log in self:
-            log.partner_id = log.sale_order_id.partner_id or log.picking_id.partner_id
+            log.partner_id = log.sale_order_id.partner_id or log.picking_id.partner_id or log.helpdesk_ticket_id.partner_id
 
     @api.model
     def _build_quantity_details(self, lines):
@@ -74,7 +79,17 @@ class RmaAuditLog(models.Model):
         return '\n'.join(detail_lines)
 
     @api.model
-    def log_event(self, action, name, sale_order=False, picking=False, generated_pickings=False, details=False, attachment_ids=False):
+    def log_event(
+        self,
+        action,
+        name,
+        sale_order=False,
+        picking=False,
+        generated_pickings=False,
+        helpdesk_ticket=False,
+        details=False,
+        attachment_ids=False,
+    ):
         """Erstellt einen Audit-Eintrag und spiegelt ihn direkt in den Chatter."""
         values = {
             'action': action,
@@ -86,6 +101,8 @@ class RmaAuditLog(models.Model):
             values['sale_order_id'] = sale_order.id
         if picking:
             values['picking_id'] = picking.id
+        if helpdesk_ticket:
+            values['helpdesk_ticket_id'] = helpdesk_ticket.id
         if generated_pickings:
             values['generated_picking_ids'] = [(6, 0, generated_pickings.ids)]
         audit_log = self.sudo().create(values)
@@ -100,6 +117,8 @@ class RmaAuditLog(models.Model):
                 records.append(log.picking_id)
             if log.sale_order_id:
                 records.append(log.sale_order_id)
+            if log.helpdesk_ticket_id:
+                records.append(log.helpdesk_ticket_id)
             records.extend(log.generated_picking_ids)
 
             body = log._prepare_chatter_body()

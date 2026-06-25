@@ -7,11 +7,12 @@
     'author': 'msv Systemhaus | Emanuel Laschinsky',
     'license': 'LGPL-3',
     'category': 'Inventory',
-    'depends': ['sale_management', 'stock', 'base', 'product', 'web'],
+    'depends': ['sale_management', 'stock', 'base', 'product', 'web', 'mail', 'helpdesk'],
     # Reihenfolge ist wichtig: Rechte/Daten zuerst, danach Views und Menüs.
     'data': [
         'security/rma_security.xml',
         'security/ir.model.access.csv',
+        'data/rma_helpdesk_data.xml',
         'data/rma_stock_data.xml',
         'data/rma_reason_data.xml',
         'views/rma_settings.xml',
@@ -20,6 +21,7 @@
         'views/rma_menu.xml',
         'views/rma_overview.xml',
         'views/rma_audit.xml',
+        'views/rma_bware_helpdesk.xml',
     ],
     # Backend-Styles sind bewusst getrennt nach Grundlayout, Kundendaten,
     # Tabellen und Mengenprüfung, damit spätere UI-Änderungen gezielt bleiben.

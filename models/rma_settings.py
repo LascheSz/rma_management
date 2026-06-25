@@ -29,6 +29,18 @@ class ResConfigSettings(models.TransientModel):
         config_parameter='rma_management.location_scrap_id',
         domain="[('usage', 'in', ['internal', 'inventory'])]",
     )
+    rma_a_location_id = fields.Many2one(
+        'stock.location',
+        string='A-/Wiederverkaufs-Lager',
+        config_parameter='rma_management.location_a_goods_id',
+        domain="[('usage', '=', 'internal')]",
+    )
+    rma_repair_location_id = fields.Many2one(
+        'stock.location',
+        string='Reparatur-Lager',
+        config_parameter='rma_management.location_repair_id',
+        domain="[('usage', '=', 'internal')]",
+    )
     rma_incoming_picking_type_id = fields.Many2one(
         'stock.picking.type',
         string='RMA-Eingang Vorgangsart',
@@ -54,6 +66,26 @@ class ResConfigSettings(models.TransientModel):
         config_parameter='rma_management.use_serial_numbers',
         default=True,
         help='Wenn deaktiviert, arbeitet RMA rein mengenbasiert und blendet Seriennummern-Auswahl sowie Q-Klassen je Seriennummer aus.',
+    )
+    rma_bware_ticket_name = fields.Char(
+        string='B-Ware Ticket-Name',
+        config_parameter='rma_management.bware_ticket_name',
+        default='Prüfware',
+    )
+    rma_bware_helpdesk_team_id = fields.Many2one(
+        'helpdesk.team',
+        string='B-Ware Kundendienst-Team',
+        config_parameter='rma_management.bware_helpdesk_team_id',
+    )
+    rma_bware_auto_create_tickets = fields.Boolean(
+        string='B-Ware Tickets automatisch erstellen',
+        config_parameter='rma_management.bware_auto_create_tickets',
+        default=True,
+    )
+    rma_bware_sla_days = fields.Integer(
+        string='B-Ware QS-SLA (Tage)',
+        config_parameter='rma_management.bware_sla_days',
+        default=5,
     )
     rma_reason_ids = fields.Many2many(
         'rma.reason',

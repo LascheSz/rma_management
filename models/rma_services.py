@@ -387,6 +387,18 @@ class RmaSplittingService(models.AbstractModel):
             'rma_processing_done': True,
         })
 
+    def _create_bware_helpdesk_tickets(self, wizard, created_pickings):
+        """Erzeugt Helpdesk-QS-Tickets ausschließlich für B-Ware-Folgebelege."""
+        b_goods_type = self._get_rma_stock_configuration()._get_picking_type('b_goods')
+        bware_pickings = created_pickings.filtered(lambda picking: picking.picking_type_id == b_goods_type)
+        tickets = self.env['helpdesk.ticket']
+        for bware_picking in bware_pickings:
+            tickets |= self.env['helpdesk.ticket']._create_rma_bware_tickets_from_picking(
+                bware_picking,
+                wizard.rma_order_id,
+            )
+        return tickets
+
     def _format_quality_note_line(self, line, field_name):
         """Formatiert eine Prüfposition für das interne Notizfeld des Belegs."""
         quality_class_by_field = {
@@ -464,6 +476,7 @@ class RmaSplittingService(models.AbstractModel):
                 self._validate_rma_and_quantities(wizard)
                 created_pickings = self._create_follow_up_pickings(wizard)
                 self._attach_inspection_files(wizard, created_pickings)
+                self._create_bware_helpdesk_tickets(wizard, created_pickings)
                 self._write_note_and_mark_done(wizard)
                 self._complete_rma_receipt(wizard)
                 self._get_audit_log().log_event(
