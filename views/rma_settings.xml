@@ -34,14 +34,6 @@
                                 <label for="rma_c_location_id" class="o_light_label"/>
                                 <field name="rma_c_location_id" options="{'no_create': False}"/>
                             </div>
-                            <div class="mt8">
-                                <label for="rma_a_location_id" class="o_light_label"/>
-                                <field name="rma_a_location_id" options="{'no_create': False}"/>
-                            </div>
-                            <div class="mt8">
-                                <label for="rma_repair_location_id" class="o_light_label"/>
-                                <field name="rma_repair_location_id" options="{'no_create': False}"/>
-                            </div>
                         </div>
                     </setting>
                     <!-- Vorgangsarten sind konfigurierbar, damit Kunden andere Lagerflüsse nutzen können. -->
@@ -80,29 +72,6 @@
                              string="RMA Seriennummern"
                              help="Aktiviert die Seriennummern-Auswahl in der RMA-Erstellung und die Q-Klassen-Zuordnung je Seriennummer in der Mengenprüfung.">
                         <field name="rma_use_serial_numbers"/>
-                    </setting>
-                    <setting id="rma_bware_helpdesk"
-                             string="B-Ware Helpdesk-Tickets"
-                             help="Erstellt automatisch pro Artikel ein Helpdesk-Ticket, sobald in der Mengenprüfung B-Ware entsteht.">
-                        <div class="content-group">
-                            <div class="mt8">
-                                <label for="rma_bware_auto_create_tickets" class="o_light_label"/>
-                                <field name="rma_bware_auto_create_tickets"/>
-                            </div>
-                            <div class="mt8">
-                                <label for="rma_bware_ticket_name" class="o_light_label"/>
-                                <field name="rma_bware_ticket_name"/>
-                            </div>
-                            <div class="mt8">
-                                <label for="rma_bware_helpdesk_team_id" class="o_light_label"/>
-                                <field name="rma_bware_helpdesk_team_id" options="{'no_create': False}"/>
-                            </div>
-                            <div class="mt8">
-                                <label for="rma_bware_sla_days" class="o_light_label"/>
-                                <field name="rma_bware_sla_days" class="oe_inline"/>
-                                <span class="ms-2">Tage</span>
-                            </div>
-                        </div>
                     </setting>
                 </block>
             </xpath>

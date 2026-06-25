@@ -5,4 +5,3 @@ from . import rma_settings
 from . import rma_services
 from . import rma_order
 from . import rma_splitting
-from . import rma_helpdesk

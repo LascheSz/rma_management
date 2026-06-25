@@ -33,11 +33,6 @@ class RmaStockConfiguration(models.AbstractModel):
             'name': 'RMA-Schrottlager',
             'usage': 'inventory',
         },
-        'repair': {
-            'xml_id': 'rma_management.stock_location_rma_repair',
-            'name': 'RMA-Reparaturlager',
-            'usage': 'internal',
-        },
     }
 
     # Technische Defaults für automatisch angelegte RMA-Vorgangsarten.
@@ -67,7 +62,6 @@ class RmaStockConfiguration(models.AbstractModel):
         'rma': 'rma_management.location_rma_id',
         'b_goods': 'rma_management.location_b_goods_id',
         'scrap': 'rma_management.location_scrap_id',
-        'repair': 'rma_management.location_repair_id',
     }
 
     # ir.config_parameter-Schlüssel für vom Benutzer gewählte Vorgangsarten.
@@ -221,12 +215,6 @@ class RmaStockConfiguration(models.AbstractModel):
     @api.model
     def _get_location(self, key):
         """Gibt den konfigurierten oder automatisch bereitgestellten Lagerort zurück."""
-        if key == 'a_goods':
-            configured_location = self._get_config_record('stock.location', 'rma_management.location_a_goods_id')
-            if configured_location:
-                return configured_location
-            return self._get_warehouse().lot_stock_id
-
         configured_location = self._get_config_record('stock.location', self._LOCATION_CONFIG_KEYS[key])
         if configured_location:
             return configured_location

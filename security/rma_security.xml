@@ -26,11 +26,4 @@
         <field name="privilege_id" ref="privilege_rma_management"/>
         <field name="implied_ids" eval="[(4, ref('group_rma_user')), (4, ref('stock.group_stock_manager'))]"/>
     </record>
-
-    <!-- QS-Prüfer arbeiten mit B-Ware Tickets im Helpdesk. -->
-    <record id="group_rma_qs_inspector" model="res.groups">
-        <field name="name">RMA QS-Prüfer</field>
-        <field name="privilege_id" ref="privilege_rma_management"/>
-        <field name="implied_ids" eval="[(4, ref('group_rma_user')), (4, ref('helpdesk.group_helpdesk_user'))]"/>
-    </record>
 </odoo>

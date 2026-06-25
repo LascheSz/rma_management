@@ -13,7 +13,6 @@
                 <field name="partner_id"/>
                 <field name="sale_order_id"/>
                 <field name="picking_id"/>
-                <field name="helpdesk_ticket_id"/>
             </list>
         </field>
     </record>
@@ -34,7 +33,6 @@
                     <group>
                         <field name="sale_order_id"/>
                         <field name="picking_id"/>
-                        <field name="helpdesk_ticket_id"/>
                         <field name="generated_picking_ids" widget="many2many_tags"/>
                     </group>
                     <group string="Details">
