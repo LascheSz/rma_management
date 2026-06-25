@@ -1,386 +1,491 @@
-# RMA Management Modul für Odoo
+# 🔄 RMA Management - Intelligentes Rückgabemanagementsystem für Odoo
 
-Ein umfassendes Rückgabemanagementsystem (RMA) für Odoo, das den kompletten Prozess von der Rückgabeanfrage über die Qualitätsprüfung bis zur Lagerklassifizierung (A-Ware, B-Ware, C-Ware) abbildet.
+> **Professionelle Rückgabeverwaltung mit automatischer Warenklassifizierung**
+
+[![Odoo Version](https://img.shields.io/badge/Odoo-16.0%2B-blue?style=flat-square)](https://www.odoo.com)
+[![License](https://img.shields.io/badge/License-LGPL--3.0-green?style=flat-square)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.8%2B-blue?style=flat-square)](https://www.python.org)
 
 ---
 
-## 1. Installation
+## 🎯 Was ist RMA Management?
 
-### Voraussetzungen
-- Odoo 16.0 oder höher
-- Module: `sale`, `stock`, `account`
-- Datenbankzugriff mit Admin-Rechten
+Das **RMA Management Modul** ist eine vollständige Lösung für die Verwaltung von Rückgaben in Ihrem Odoo-System. Es automatisiert den kompletten Prozess von der Rückgabeanfrage über die Qualitätsprüfung bis zur intelligenten Klassifizierung der Ware in:
 
-### Installationsschritte
+- **🟢 A-Ware** - Neuwertig, sofort wiederverkaufsbereit
+- **🟡 B-Ware** - Leichte Mängel, mit Rabatt verkaufsbereit  
+- **🔴 C-Ware** - Defekt, zur Verschrottung
 
-**Schritt 1: Modul herunterladen**
+---
+
+## ✨ Hauptfunktionen
+
+| Feature | Beschreibung |
+|---------|-------------|
+| 📋 **RMA-Verwaltung** | Einfache Erstellung von Rückgabeanfragen direkt aus Verkaufsaufträgen |
+| 🔀 **Intelligentes Splitting** | Automatische Aufteilung der Ware in A-, B-, C-Klassen |
+| 📸 **Bildverwaltung** | Hochladen und Verwaltung von Inspektionsfotos |
+| 🔐 **Seriennummern** | Optionale Verfolgung einzelner Geräte via Seriennummern |
+| 📊 **Audit-Trail** | Vollständige Protokollierung aller RMA-Aktivitäten |
+| ⚙️ **Flexible Konfiguration** | Anpassbare Lagerorte, Vorgangsarten und Rückgabegründe |
+| 🔔 **Automatisierung** | Automatische Lagerbewegungen und Bestandsverwaltung |
+
+---
+
+## 🚀 Schnellstart
+
+### 📦 Installation
+
 ```bash
+# 1. Modul klonen
 cd /path/to/odoo/addons
 git clone https://github.com/LascheSz/rma_management.git
-```
 
-**Schritt 2: Odoo neu starten**
-```bash
-# Starten Sie Odoo mit dem Update-Flag
+# 2. Odoo neu starten mit Update-Flag
 odoo-bin -d database_name -u rma_management
+
+# 3. Modul aktivieren
+# Apps → Suchen: "RMA Management" → Installieren
 ```
 
-**Schritt 3: Modul aktivieren**
-- Gehen Sie zu Apps → Suchen Sie nach "RMA Management"
-- Klicken Sie auf "Installieren"
+### ⚙️ Erste Konfiguration
 
-**Schritt 4: Konfiguration durchführen**
-- Gehen Sie zu RMA Management → Einstellungen
-- Konfigurieren Sie die erforderlichen Lagerorte und Vorgangsarten (siehe Konfiguration)
+Nach der Installation müssen Sie folgende Einstellungen vornehmen:
+
+```
+RMA Management → Einstellungen
+├── 📍 Lagerorte definieren
+│   ├── RMA-Standardlager
+│   ├── B-Ware Prüflager
+│   ├── A-Ware Wiederverkaufslager
+│   ├── C-Ware Schrottlager
+│   └── Reparatur-Lager
+├── 🔄 Vorgangsarten konfigurieren
+│   ├── RMA-Eingang
+│   ├── A-Ware Transfer
+│   ├── B-Ware Transfer
+│   └── Verschrottung
+└── 🏷️ RMA-Gründe aktivieren
+    ├── Defekt
+    ├── Beschädigt
+    ├── Falsch geliefert
+    └── Nicht gewünscht
+```
 
 ---
 
-## 2. Datenmodelle (Übersicht)
+## 📚 Datenmodelle
 
-Das RMA-Modul definiert folgende Hauptmodelle:
+### 🏷️ `rma.reason` - Rückgabegründe
 
-### 2.1 `rma.reason` - RMA-Gründe
-**Zweck:** Definiert die möglichen Rückgabegründe (z.B. "Defekt", "Beschädigt", "Falsch geliefert")
+Definiert die verfügbaren Rückgabegründe im System.
 
-**Wichtige Felder:**
-- `name` (Char): Name des Grundes (z.B. "Defekt")
-- `description` (Text): Ausführliche Beschreibung
-- `active` (Boolean): Ist dieser Grund aktiv?
-
-**Verwendung:** Wird beim RMA-Erstellungswizard ausgewählt
+```
+Beispiele:
+├── 🔧 Defekt
+├── 📦 Beschädigt
+├── ❌ Falsch geliefert
+├── 🚫 Nicht gewünscht
+└── ❓ Sonstiges
+```
 
 ---
 
-### 2.2 `rma.order` - RMA-Auftrag (Wizard)
-**Zweck:** Temporärer Wizard zur Erstellung von RMA-Eingangsbelegen
+### 📋 `rma.order` - RMA-Auftrag (Wizard)
 
-**Wichtige Felder:**
-- `sale_order_id` (Many2one): Referenz zum Original-Verkaufsauftrag
-- `rma_reason_id` (Many2one): Ausgewählter Rückgabegrund
-- `partner_id` (Many2one): Kunde
-- `line_ids` (One2many): Zeilen mit Produkten und Rückgabemengen
+Der Startpunkt für jede Rückgabe. Ein benutzerfreundlicher Wizard zur Erstellung von RMA-Eingängen.
 
 **Workflow:**
-1. Benutzer öffnet einen Verkaufsauftrag
-2. Klickt auf "RMA erstellen"
-3. Wählt Rückgabegrund und Mengen
-4. Klickt "Rückgabe erstellen"
-5. RMA-Eingangsbeleg wird erstellt
+```
+Verkaufsauftrag öffnen
+    ↓
+"RMA erstellen" klicken
+    ↓
+Rückgabegrund wählen
+    ↓
+Mengen eingeben
+    ↓
+"Rückgabe erstellen" klicken
+    ↓
+RMA-Eingangsbeleg wird erstellt
+```
 
 ---
 
-### 2.3 `rma.splitting` - RMA-Splitting (Wizard)
-**Zweck:** Teilt einen RMA-Eingangsbeleg in A-, B- und C-Ware auf
+### 🔀 `rma.splitting` - RMA-Splitting (Wizard)
 
-**Wichtige Felder:**
-- `rma_order_id` (Many2one): Referenz zum RMA-Eingangsbeleg
-- `line_ids` (One2many): Zeilen mit Aufteilung pro Artikel
-  - `rma_qty_a` (Float): Menge für A-Ware
-  - `rma_qty_b` (Float): Menge für B-Ware
-  - `rma_qty_c` (Float): Menge für C-Ware
+Intelligente Aufteilung der eingegangenen Ware in Qualitätsklassen.
 
-**Workflow:**
-1. Benutzer öffnet einen RMA-Eingangsbeleg
-2. Klickt auf "RMA Splitting"
-3. Verteilt die Mengen auf A-, B-, C-Ware
-4. Klickt "Splitting durchführen"
-5. Drei separate Lagerbewegungen werden erstellt
-
----
-
-### 2.4 `stock.picking` - Lagerbewegung (erweitert)
-**Zweck:** Standard-Odoo Lagerbewegung mit RMA-Erweiterungen
-
-**Neue RMA-Felder:**
-- `rma_reason_id` (Many2one): RMA-Grund
-- `rma_sale_order_id` (Many2one): Referenz zum Verkaufsauftrag
-- `rma_attachment_ids` (Many2many): Hochgeladene Bilder/Dokumente
-- `rma_receipt_created` (Boolean): Wurde ein RMA-Eingang erstellt?
-- `picking_type_code` (Char): Art der Lagerbewegung (incoming, outgoing, internal)
-
-**Verwendung:** Alle Lagerbewegungen im RMA-Prozess (RMA-Eingang, A-Ware, B-Ware, C-Ware)
+**Beispiel:**
+```
+5 Stück Laptop-Netzteil eingegangen
+    ↓
+Splitting durchführen
+    ├── 2 Stück → 🟢 A-Ware (funktioniert einwandfrei)
+    ├── 2 Stück → 🟡 B-Ware (leichte Kratzer)
+    └── 1 Stück → 🔴 C-Ware (defekt)
+    ↓
+Automatische Lagerbewegungen erstellt
+```
 
 ---
 
-### 2.5 `rma.audit.log` - Audit-Log
-**Zweck:** Protokolliert alle wichtigen RMA-Ereignisse
+### 📦 `stock.picking` - Lagerbewegung (erweitert)
 
-**Wichtige Felder:**
-- `action` (Selection): Art des Ereignisses (z.B. 'receipt_created', 'split_executed')
-- `name` (Char): Beschreibung des Ereignisses
-- `sale_order_id` (Many2one): Zugehöriger Verkaufsauftrag
-- `picking_id` (Many2one): Zugehöriger Beleg
-- `user_id` (Many2one): Benutzer, der die Aktion durchgeführt hat
-- `create_date` (Datetime): Zeitstempel
+Alle RMA-Lagerbewegungen basieren auf dem Standard-Odoo Picking-Modell mit RMA-Erweiterungen:
 
-**Verwendung:** Nachverfolgung aller RMA-Aktivitäten
+- 📸 RMA-Bilder und Anhänge
+- 🏷️ RMA-Grund
+- 🔗 Verkaufsauftrag-Referenz
+- 📝 RMA-Notizen
 
 ---
 
-### 2.6 `rma.stock.configuration` - Stock-Konfiguration
-**Zweck:** Zentrale Verwaltung der RMA-Lagerorte und Vorgangsarten
+### 📊 `rma.audit.log` - Audit-Trail
 
-**Wichtige Methoden:**
-- `_get_location(location_key)`: Gibt den Lagerort für einen Schlüssel zurück
-  - `'rma'`: RMA-Standardlager
-  - `'b_goods'`: B-Ware Prüflager
-  - `'scrap'`: C-Ware Schrottlager
-  - `'a_goods'`: A-Ware Wiederverkaufslager
-  - `'repair'`: Reparatur-Lager
-- `_get_picking_type(type_key)`: Gibt die Vorgangsart zurück
-  - `'incoming'`: RMA-Eingang
-  - `'b_goods'`: B-Ware Vorgangsart
-  - `'scrap'`: C-Ware Vorgangsart
+Vollständige Protokollierung aller RMA-Aktivitäten für Compliance und Nachverfolgung.
+
+**Protokollierte Ereignisse:**
+```
+✓ RMA-Eingang erstellt
+✓ Splitting durchgeführt
+✓ Ware klassifiziert
+✓ Lagerbewegungen erstellt
+✓ Benutzer und Zeitstempel
+```
 
 ---
 
-### 2.7 `rma.order.service` - Service-Schicht
-**Zweck:** Geschäftslogik für RMA-Operationen
+### ⚙️ `rma.stock.configuration` - Zentrale Konfiguration
 
-**Wichtige Methoden:**
-- `create_return_picking(wizard)`: Erstellt RMA-Eingangsbeleg
-- `execute_split(wizard)`: Führt RMA-Splitting durch
-- `_create_selected_serial_move_lines(moves_by_line)`: Verarbeitet Seriennummern
+Verwaltet alle RMA-relevanten Lagerorte und Vorgangsarten zentral.
 
 ---
 
-## 3. Konfiguration
+## 🎬 Workflow: Schritt-für-Schritt
 
-### Einstellungen aufrufen
+### 📌 Szenario: Kunde möchte 5 Laptop-Netzteile zurückgeben
+
+#### Phase 1️⃣: RMA-Antrag erstellen
+
+```
+1. Öffnen Sie den Verkaufsauftrag des Kunden
+   Verkauf → Aufträge → [Auftrag öffnen]
+
+2. Klicken Sie auf "🔄 RMA erstellen"
+   → Wizard öffnet sich
+
+3. Wählen Sie den Rückgabegrund
+   ├── 🔧 Defekt ← (in diesem Fall)
+   ├── 📦 Beschädigt
+   └── ...
+
+4. Geben Sie die Rückgabemenge ein
+   └── 5 Stück
+
+5. Klicken Sie "✓ Rückgabe erstellen"
+   → RMA-Eingangsbeleg wird erstellt
+```
+
+---
+
+#### Phase 2️⃣: RMA-Eingang verarbeiten
+
+```
+1. RMA-Eingangsbeleg öffnen
+   Status: 📋 Draft
+
+2. Klicken Sie "✓ Bestätigen"
+   Status: 🔄 Confirmed
+
+3. Optional: Inspektionsfotos hochladen
+   📸 Bilder → [Hochladen]
+
+4. Klicken Sie "✓ Validieren"
+   Status: ✅ Done
+   → Ware ist jetzt im RMA-Lager
+```
+
+---
+
+#### Phase 3️⃣: RMA-Splitting durchführen
+
+```
+1. RMA-Beleg öffnen
+   Status: ✅ Done
+
+2. Klicken Sie "🔀 RMA Splitting"
+   → Splitting-Wizard öffnet sich
+
+3. Verteilen Sie die Ware auf Klassen:
+
+   📍 Artikel: Laptop-Netzteil (5 Stück)
+   
+   🟢 A-Ware:  2 Stück (funktionieren einwandfrei)
+   🟡 B-Ware:  2 Stück (haben leichte Kratzer)
+   🔴 C-Ware:  1 Stück (defekt, nicht reparierbar)
+
+4. Klicken Sie "✓ Splitting durchführen"
+   → 3 separate Lagerbewegungen werden erstellt
+```
+
+---
+
+#### Phase 4️⃣: Automatische Lagerbewegungen
+
+```
+Nach dem Splitting werden automatisch erstellt:
+
+┌─────────────────────────────────────┐
+│ 🟢 A-Ware Beleg                     │
+│ 2 Stück → A-Lager (Wiederverkauf)   │
+│ Status: Ready to validate           │
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ 🟡 B-Ware Beleg                     │
+│ 2 Stück → B-Lager (Prüfung)         │
+│ Status: Ready to validate           │
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ 🔴 C-Ware Beleg                     │
+│ 1 Stück → Schrottlager              │
+│ Status: Ready to validate           │
+└─────────────────────────────────────┘
+```
+
+---
+
+#### Phase 5️⃣: Abschluss
+
+```
+1. Validieren Sie alle Belege
+   ├── 🟢 A-Ware: ✓ Validieren
+   ├── 🟡 B-Ware: ✓ Validieren
+   └── 🔴 C-Ware: ✓ Validieren
+
+2. RMA-Prozess ist abgeschlossen ✅
+   ├── Ware ist in den richtigen Lagern
+   ├── Audit-Log ist aktualisiert
+   └── Automatische Benachrichtigungen versendet
+```
+
+---
+
+## 🎛️ Konfiguration im Detail
+
+### 📍 Lagerorte einrichten
+
 Gehen Sie zu: **RMA Management → Einstellungen**
 
-### Erforderliche Konfigurationen
-
-**1. Standard-Rückgabefrist (Tage)**
-- Standard: 14 Tage
-- Zeitraum, innerhalb dessen Rückgaben akzeptiert werden
-
-**2. Lagerorte konfigurieren**
-- **RMA-Standardlager**: Wo RMA-Eingänge landen
-- **B-Ware Prüflager**: Wo B-Ware zwischengelagert wird
-- **C-Ware Schrottlager**: Wo Schrott landet
-- **A-Ware Wiederverkaufslager**: Wo verkaufsreife Ware landet
-- **Reparatur-Lager**: Wo Ware zur Reparatur liegt
-
-**3. Vorgangsarten konfigurieren**
-- **RMA-Eingang Vorgangsart**: Für RMA-Eingänge
-- **A-Ware Vorgangsart**: Für A-Ware Umlagern
-- **B-Ware Vorgangsart**: Für B-Ware Umlagern
-- **C-Ware Vorgangsart**: Für Verschrottung
-
-**4. Seriennummern verwenden**
-- Toggle: "Seriennummern in RMA verwenden"
-- Wenn aktiviert: Seriennummern können pro Artikel ausgewählt werden
-- Wenn deaktiviert: Rein mengenbasiert
-
-**5. RMA-Gründe aktivieren**
-- Wählen Sie, welche Rückgabegründe verfügbar sein sollen
-- Standard: Defekt, Beschädigt, Falsch geliefert, Nicht gewünscht
+| Lagerort | Zweck | Beispiel |
+|----------|-------|---------|
+| 🔵 RMA-Standardlager | Wo RMA-Eingänge landen | Rückgabe-Annahme |
+| 🟡 B-Ware Prüflager | Zwischenlagerung für Prüfung | B-Ware Prüfzone |
+| 🟢 A-Ware Lager | Wiederverkaufsreife Ware | Verkaufs-Lager |
+| 🔴 Schrottlager | Defekte/unbrauchbare Ware | Verschrottung |
+| 🔧 Reparatur-Lager | Zur Reparatur bestimmte Ware | Reparatur-Zone |
 
 ---
 
-## 4. Workflow: Schritt für Schritt
+### 🔄 Vorgangsarten konfigurieren
 
-### Szenario: Kunde möchte 5 Stück Laptop-Netzteil zurückgeben (defekt)
-
-#### Phase 1: RMA-Antrag erstellen
-
-**Schritt 1:** Öffnen Sie den Verkaufsauftrag des Kunden
-- Gehen Sie zu Verkauf → Aufträge
-- Öffnen Sie den Auftrag
-
-**Schritt 2:** Klicken Sie auf "RMA erstellen"
-- Ein Wizard öffnet sich
-- Wählen Sie "Defekt" als Rückgabegrund
-- Geben Sie 5 als Rückgabemenge ein
-- Klicken Sie "Rückgabe erstellen"
-
-**Ergebnis:**
-- RMA-Eingangsbeleg wird erstellt
-- Status: "Draft" (Entwurf)
-- 5 Stück Laptop-Netzteil sind im RMA-Beleg
-
-#### Phase 2: RMA-Eingang bestätigen
-
-**Schritt 3:** Bestätigen Sie den RMA-Eingangsbeleg
-- Klicken Sie "Bestätigen"
-- Status wechselt zu "Confirmed"
-- Lagerbewegung wird vorbereitet
-
-**Schritt 4:** Markieren Sie als erhalten
-- Klicken Sie "Validieren"
-- Status wechselt zu "Done"
-- Ware ist jetzt im RMA-Lager
-
-**Optional: Bilder hochladen**
-- Im Beleg können Inspektionsfotos hochgeladen werden
-- Diese werden später im QS-Prozess verwendet
-
-#### Phase 3: RMA-Splitting durchführen
-
-**Schritt 5:** Öffnen Sie den RMA-Eingangsbeleg
-- Klicken Sie auf "RMA Splitting"
-- Ein Wizard öffnet sich
-
-**Schritt 6:** Verteilen Sie die Ware
-- Für die 5 Stück Laptop-Netzteil:
-  - A-Ware: 2 Stück (funktionieren einwandfrei)
-  - B-Ware: 2 Stück (haben leichte Mängel)
-  - C-Ware: 1 Stück (defekt, nicht reparierbar)
-- Klicken Sie "Splitting durchführen"
-
-**Ergebnis:**
-- 3 separate Lagerbewegungen werden erstellt:
-  1. **A-Ware Beleg**: 2 Stück → A-Lager (Wiederverkauf)
-  2. **B-Ware Beleg**: 2 Stück → B-Lager (Prüfung erforderlich)
-  3. **C-Ware Beleg**: 1 Stück → Schrottlager (Verschrottung)
-
-#### Phase 4: B-Ware Qualitätsprüfung (optional)
-
-**Hinweis:** B-Ware Tickets sind derzeit deaktiviert. Sie können aber manuell:
-
-**Schritt 7:** B-Ware Beleg öffnen
-- Suchen Sie den B-Ware Beleg
-- Dokumentieren Sie die Qualitätsprüfung
-- Entscheiden Sie: Wiederverkauf oder Verschrottung
-
-#### Phase 5: Abschluss
-
-**Schritt 8:** Alle Belege validieren
-- A-Ware Beleg: Validieren → Ware ist verkaufsbereit
-- B-Ware Beleg: Validieren → Ware wird als B-Ware verkauft
-- C-Ware Beleg: Validieren → Ware wird verschrottet
-
-**Ergebnis:**
-- RMA-Prozess ist abgeschlossen
-- Ware ist in den richtigen Lagern
-- Audit-Log hat alle Schritte protokolliert
+| Vorgangsart | Typ | Verwendung |
+|-------------|-----|-----------|
+| RMA-Eingang | Incoming | Rückgaben empfangen |
+| A-Ware Transfer | Internal | A-Ware ins Verkaufslager |
+| B-Ware Transfer | Internal | B-Ware ins Prüflager |
+| Verschrottung | Internal | Schrott ins Schrottlager |
 
 ---
 
-## 5. Benutzeroberfläche
+### 🏷️ RMA-Gründe aktivieren
 
-### Menü-Navigation
+Wählen Sie, welche Rückgabegründe verfügbar sein sollen:
+
 ```
-RMA Management
-├── RMA Aufträge (Verkaufsaufträge mit RMA-Option)
-├── RMA Splitting (Splitting-Wizard)
-├── RMA Gründe (Verwaltung der Rückgabegründe)
-├── Audit-Log (Protokoll aller Aktivitäten)
-└── Einstellungen (Konfiguration)
+☑ 🔧 Defekt
+☑ 📦 Beschädigt
+☑ ❌ Falsch geliefert
+☑ 🚫 Nicht gewünscht
+☑ ❓ Sonstiges
 ```
 
-### Wichtige Views
+---
 
-**RMA-Eingangsbeleg (Stock Picking)**
-- Header mit Beleg-Nummer, Status, Datum
-- Reiter: Allgemein, Zusätzliche Informationen, Notizen
-- Buttons: Bestätigen, Validieren, RMA Splitting
-- Chatter für Kommentare
+## 👥 Berechtigungen & Benutzergruppen
 
-**RMA Splitting Wizard**
-- Zeigt alle Positionen aus dem RMA-Eingang
-- Felder zum Verteilen auf A-, B-, C-Ware
-- Validierung: Summe muss gleich Eingangsmenge sein
-- Button: "Splitting durchführen"
+### 👤 RMA User
+```
+✓ RMA-Aufträge erstellen
+✓ RMA-Eingänge bestätigen
+✓ RMA-Splitting durchführen
+✓ Bilder hochladen
+```
 
-**Audit-Log**
-- Chronologische Liste aller RMA-Ereignisse
-- Filter nach Verkaufsauftrag, Beleg, Aktion, Datum
-- Detaillierte Informationen zu jeder Aktion
+### 👨‍💼 RMA Manager
+```
+✓ Alle Rechte von RMA User
+✓ Einstellungen ändern
+✓ Audit-Log einsehen
+✓ Benutzer verwalten
+```
 
 ---
 
-## 6. Berechtigungen
+## 📊 Audit-Log & Nachverfolgung
 
-Das Modul definiert folgende Benutzergruppen:
+Alle RMA-Aktivitäten werden automatisch protokolliert:
 
-**Gruppe: RMA User**
-- Darf RMA-Aufträge erstellen
-- Darf RMA-Eingänge bestätigen
-- Darf RMA-Splitting durchführen
+```
+📅 Datum & Uhrzeit
+👤 Benutzer
+🎯 Aktion (z.B. "RMA erstellt", "Splitting durchgeführt")
+📝 Details
+🔗 Verknüpfte Belege
+```
 
-**Gruppe: RMA Manager**
-- Alle Rechte von RMA User
-- Darf Einstellungen ändern
-- Darf Audit-Log einsehen
-
----
-
-## 7. Häufig gestellte Fragen
-
-**F: Was ist der Unterschied zwischen A-, B- und C-Ware?**
-
-A: 
-- **A-Ware**: Funktioniert einwandfrei, kann direkt wiederverkauft werden
-- **B-Ware**: Hat leichte Mängel, funktioniert aber, wird mit Rabatt verkauft
-- **C-Ware**: Ist defekt oder stark beschädigt, wird verschrottet
-
-**F: Kann ich Seriennummern verwenden?**
-
-A: Ja! Wenn Sie "Seriennummern verwenden" in den Einstellungen aktivieren, können Sie beim RMA-Erstellungswizard einzelne Seriennummern auswählen.
-
-**F: Wie kann ich die Rückgabefrist ändern?**
-
-A: Gehen Sie zu RMA Management → Einstellungen → "Standard-Rückgabefrist (Tage)" und ändern Sie den Wert.
-
-**F: Wo sehe ich alle RMA-Aktivitäten?**
-
-A: Gehen Sie zu RMA Management → Audit-Log. Hier werden alle Ereignisse chronologisch aufgelistet.
-
-**F: Kann ich die Lagerorte ändern?**
-
-A: Ja! Gehen Sie zu RMA Management → Einstellungen und konfigurieren Sie die Lagerorte nach Ihren Anforderungen.
+**Zugriff:** RMA Management → Audit-Log
 
 ---
 
-## 8. Technische Details
+## ❓ Häufig gestellte Fragen
 
-### Abhängigkeiten
+### ❓ Was ist der Unterschied zwischen A-, B- und C-Ware?
+
+| Klasse | Zustand | Verkauf | Lagerort |
+|--------|---------|---------|----------|
+| 🟢 A-Ware | Neuwertig | Vollpreis | Verkaufslager |
+| 🟡 B-Ware | Leichte Mängel | Mit Rabatt | Prüflager |
+| 🔴 C-Ware | Defekt | Nicht verkaufsbereit | Schrottlager |
+
+---
+
+### ❓ Kann ich Seriennummern verwenden?
+
+**Ja!** Aktivieren Sie in den Einstellungen:
+```
+☑ Seriennummern in RMA verwenden
+```
+
+Dann können Sie beim RMA-Erstellungswizard einzelne Seriennummern auswählen.
+
+---
+
+### ❓ Wie lange ist die Standard-Rückgabefrist?
+
+**Standard: 14 Tage**
+
+Sie können dies in den Einstellungen ändern:
+```
+RMA Management → Einstellungen
+→ Standard-Rückgabefrist (Tage)
+```
+
+---
+
+### ❓ Wo sehe ich alle RMA-Aktivitäten?
+
+**Im Audit-Log:**
+```
+RMA Management → Audit-Log
+```
+
+Hier werden alle Ereignisse chronologisch aufgelistet mit Filter-Optionen.
+
+---
+
+### ❓ Kann ich die Lagerorte nachträglich ändern?
+
+**Ja!** Gehen Sie zu:
+```
+RMA Management → Einstellungen
+→ Lagerorte konfigurieren
+```
+
+---
+
+## 🛠️ Technische Details
+
+### 📋 Abhängigkeiten
+
 ```python
 'depends': [
-    'sale',
-    'stock',
-    'account',
-    'web',
+    'sale',        # Verkaufsmodul
+    'stock',       # Lagerverwaltung
+    'account',     # Buchhaltung
+    'web',         # Web-Interface
 ],
 ```
 
-### Datenbankmodelle
-- `rma.reason`: Rückgabegründe
-- `rma.order`: RMA-Aufträge (Wizard)
-- `rma.splitting`: RMA-Splitting (Wizard)
-- `rma.audit.log`: Audit-Log
-- `rma.stock.configuration`: Stock-Konfiguration
+### 🗄️ Datenbankmodelle
 
-### Erweiterte Modelle
-- `stock.picking`: Lagerbewegung (RMA-Felder hinzugefügt)
-- `sale.order`: Verkaufsauftrag (RMA-Buttons hinzugefügt)
+```
+rma.reason              → Rückgabegründe
+rma.order              → RMA-Aufträge (Wizard)
+rma.splitting          → RMA-Splitting (Wizard)
+rma.audit.log          → Audit-Trail
+rma.stock.configuration → Stock-Konfiguration
+```
 
-### Sicherheit
-- `rma_security.xml`: Benutzergruppen und Zugriffskontrolle
+### 🔐 Sicherheit
 
----
-
-## 9. Support und Dokumentation
-
-**Probleme melden:**
-- GitHub Issues: https://github.com/LascheSz/rma_management/issues
-
-**Code-Review:**
-- Siehe `rma_management_code_review.md` für detaillierte Code-Analyse
-
-**Konzept und Design:**
-- Siehe `b_ware_ticket_kurz.md` für B-Ware Ticket-Konzept
+```
+rma_security.xml       → Benutzergruppen & Zugriffskontrolle
+```
 
 ---
 
-## 10. Lizenz
+## 📞 Support & Community
 
-Dieses Modul ist unter der LGPL-3.0 Lizenz lizenziert.
+### 🐛 Probleme melden
+
+Haben Sie ein Problem gefunden? Melden Sie es auf GitHub:
+
+**GitHub Issues:** [LascheSz/rma_management/issues](https://github.com/LascheSz/rma_management/issues)
+
+---
+
+### 📖 Weitere Dokumentation
+
+- **Code-Review:** `rma_management_code_review.md`
+- **B-Ware Konzept:** `b_ware_ticket_kurz.md`
+- **Erweiterungsideen:** `rma_erweiterungsideen.md`
+
+---
+
+## 📄 Lizenz
+
+Dieses Modul ist unter der **LGPL-3.0 Lizenz** lizenziert.
+
+```
+Copyright (c) 2026 RMA Management Team
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License.
+```
+
+---
+
+## 🎉 Danksagungen
+
+Vielen Dank an alle Contributor und die Odoo-Community für ihre Unterstützung!
+
+---
+
+<div align="center">
+
+**Made with ❤️ for Odoo**
+
+[⭐ GitHub](https://github.com/LascheSz/rma_management) • [📧 Kontakt](mailto:support@example.com) • [🌐 Website](https://example.com)
+
+</div>
 
 ---
 
 **Version:** 1.0  
 **Letzte Aktualisierung:** Juni 2026  
-**Autor:** RMA Management Team
+**Autor:** RMA Management Team  
+**Status:** ✅ Production Ready
