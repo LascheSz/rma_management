@@ -13,7 +13,7 @@
 Das **RMA Management Modul** ist eine vollständige Lösung für die Verwaltung von Rückgaben in Ihrem Odoo-System. Es automatisiert den kompletten Prozess von der Rückgabeanfrage über die Qualitätsprüfung bis zur intelligenten Klassifizierung der Ware in:
 
 - **🟢 A-Ware** - Neuwertig, sofort wiederverkaufsbereit
-- **🟡 B-Ware** - Leichte Mängel, mit Rabatt verkaufsbereit  
+- **🟡 B-Ware** - Muss geprüft werden, Entscheidung nach QS erforderlich
 - **🔴 C-Ware** - Defekt, zur Verschrottung
 
 ---
@@ -222,7 +222,7 @@ Verwaltet alle RMA-relevanten Lagerorte und Vorgangsarten zentral.
    📍 Artikel: Laptop-Netzteil (5 Stück)
    
    🟢 A-Ware:  2 Stück (funktionieren einwandfrei)
-   🟡 B-Ware:  2 Stück (haben leichte Kratzer)
+   🟡 B-Ware:  2 Stück (müssen geprüft werden)
    🔴 C-Ware:  1 Stück (defekt, nicht reparierbar)
 
 4. Klicken Sie "✓ Splitting durchführen"
@@ -244,8 +244,8 @@ Nach dem Splitting werden automatisch erstellt:
 
 ┌─────────────────────────────────────┐
 │ 🟡 B-Ware Beleg                     │
-│ 2 Stück → B-Lager (Prüfung)         │
-│ Status: Ready to validate           │
+│ 2 Stück → B-Lager (QS erforderlich) │
+│ Status: Wartet auf Qualitätsprüfung │
 └─────────────────────────────────────┘
 
 ┌─────────────────────────────────────┐
@@ -354,10 +354,10 @@ Alle RMA-Aktivitäten werden automatisch protokolliert:
 
 ### ❓ Was ist der Unterschied zwischen A-, B- und C-Ware?
 
-| Klasse | Zustand | Verkauf | Lagerort |
-|--------|---------|---------|----------|
-| 🟢 A-Ware | Neuwertig | Vollpreis | Verkaufslager |
-| 🟡 B-Ware | Leichte Mängel | Mit Rabatt | Prüflager |
+| Klasse | Zustand | Status | Lagerort |
+|--------|---------|--------|----------|
+| 🟢 A-Ware | Neuwertig | Sofort verkaufsbereit | Verkaufslager |
+| 🟡 B-Ware | Zu prüfen | Wartet auf QS-Entscheidung | Prüflager |
 | 🔴 C-Ware | Defekt | Nicht verkaufsbereit | Schrottlager |
 
 ---
