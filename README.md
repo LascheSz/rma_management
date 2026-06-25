@@ -58,10 +58,9 @@ Nach der Installation müssen Sie folgende Einstellungen vornehmen:
 RMA Management → Einstellungen
 ├── 📍 Lagerorte definieren
 │   ├── RMA-Standardlager
-│   ├── B-Ware Prüflager
+│   ├── Prüflager
 │   ├── A-Ware Wiederverkaufslager
-│   ├── C-Ware Schrottlager
-│   └── Reparatur-Lager
+│   └── C-Ware Schrottlager
 ├── 🔄 Vorgangsarten konfigurieren
 │   ├── RMA-Eingang
 │   ├── A-Ware Transfer
@@ -246,7 +245,7 @@ Nach dem Splitting werden automatisch erstellt:
 
 ┌─────────────────────────────────────┐
 │ 🟡 B-Ware Beleg                     │
-│ 2 Stück → B-Lager (QS erforderlich) │
+│ 2 Stück → Prüflager (QS erforderlich) │
 │ Status: Wartet auf Qualitätsprüfung │
 └─────────────────────────────────────┘
 
@@ -284,7 +283,7 @@ Gehen Sie zu: **RMA Management → Einstellungen**
 | Lagerort | Zweck | Beispiel |
 |----------|-------|----------|
 | 🔵 RMA-Standardlager | Wo RMA-Eingänge landen | Rückgabe-Annahme |
-| 🟡 B-Ware Lager | B-Ware Prüfung und Lagerung | B-Lager (Prüfzone) |
+| 🟡 Prüflager | B-Ware Prüfung und Lagerung | Prüflager |
 | 🟢 A-Ware Lager | Wiederverkaufsreife Ware | Verkaufs-Lager |
 | 🔴 Schrottlager | Defekte/unbrauchbare Ware | Verschrottung |
 
@@ -296,7 +295,7 @@ Gehen Sie zu: **RMA Management → Einstellungen**
 |-------------|-----|----------|
 | RMA-Eingang | Incoming | Rückgaben empfangen |
 | A-Ware Transfer | Internal | A-Ware ins Verkaufslager |
-| B-Ware Transfer | Internal | B-Ware ins B-Lager (Prüfung) |
+| B-Ware Transfer | Internal | B-Ware ins Prüflager |
 | Verschrottung | Internal | Schrott ins Schrottlager |
 
 ---
