@@ -492,7 +492,7 @@ Vielen Dank an alle Contributor und die Odoo-Community für ihre Unterstützung!
 
 ⚠️ **Proprietary Software - Unauthorized use is prohibited**
 
-[📧 Kontakt](mailto:support@example.com) • [🌐 Website](https://example.com)
+[📧 Kontakt](mailto:info@msv-systemhaus.de) • [🌐 Website](https://msv-systemhaus.de)
 
 </div>
 
