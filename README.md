@@ -282,22 +282,21 @@ Nach dem Splitting werden automatisch erstellt:
 Gehen Sie zu: **RMA Management → Einstellungen**
 
 | Lagerort | Zweck | Beispiel |
-|----------|-------|---------|
+|----------|-------|----------|
 | 🔵 RMA-Standardlager | Wo RMA-Eingänge landen | Rückgabe-Annahme |
-| 🟡 B-Ware Prüflager | Zwischenlagerung für Prüfung | B-Ware Prüfzone |
+| 🟡 B-Ware Lager | B-Ware Prüfung und Lagerung | B-Lager (Prüfzone) |
 | 🟢 A-Ware Lager | Wiederverkaufsreife Ware | Verkaufs-Lager |
 | 🔴 Schrottlager | Defekte/unbrauchbare Ware | Verschrottung |
-| 🔧 Reparatur-Lager | Zur Reparatur bestimmte Ware | Reparatur-Zone |
 
 ---
 
 ### 🔄 Vorgangsarten konfigurieren
 
 | Vorgangsart | Typ | Verwendung |
-|-------------|-----|-----------|
+|-------------|-----|----------|
 | RMA-Eingang | Incoming | Rückgaben empfangen |
 | A-Ware Transfer | Internal | A-Ware ins Verkaufslager |
-| B-Ware Transfer | Internal | B-Ware ins Prüflager |
+| B-Ware Transfer | Internal | B-Ware ins B-Lager (Prüfung) |
 | Verschrottung | Internal | Schrott ins Schrottlager |
 
 ---
