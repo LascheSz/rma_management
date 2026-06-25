@@ -138,9 +138,7 @@ class RmaOrder(models.TransientModel):
         if not sale_order:
             return
 
-        selectable_lines = sale_order.order_line.filtered(
-            lambda line: not line.display_type and line.product_id.type != 'service'
-        )
+        selectable_lines = self._get_selectable_sale_order_lines(sale_order)
         line_index = 0
 
         for command in line_commands:
@@ -155,6 +153,21 @@ class RmaOrder(models.TransientModel):
                 command_values['sale_order_line_id'] = selectable_lines[line_index].id
             line_index += 1
 
+    @api.model
+    def _get_selectable_sale_order_lines(self, sale_order):
+        """Liest retourenfähige Verkaufspositionen direkt per Domain.
+
+        Das vermeidet bei großen Aufträgen unnötiges Filtern aller bereits
+        vorab geladenen One2many-Zeilen im Python-Prozess.
+        """
+        if not sale_order:
+            return self.env['sale.order.line']
+        return self.env['sale.order.line'].search([
+            ('order_id', '=', sale_order.id),
+            ('display_type', '=', False),
+            ('product_id.type', '!=', 'service'),
+        ], order='sequence, id')
+
     def _get_order_line_commands(self):
         """Erzeugt One2many-Kommandos für alle physischen Verkaufspositionen."""
         self.ensure_one()
@@ -163,9 +176,7 @@ class RmaOrder(models.TransientModel):
         if not self.sale_order_id:
             return commands
 
-        for order_line in self.sale_order_id.order_line:
-            if order_line.display_type or order_line.product_id.type == 'service':
-                continue
+        for order_line in self._get_selectable_sale_order_lines(self.sale_order_id):
             commands.append((0, 0, {
                 'sale_order_line_id': order_line.id,
             }))
@@ -194,10 +205,14 @@ class RmaOrder(models.TransientModel):
 
             if remaining_days >= 0:
                 record.return_days_remaining = remaining_days
-                record.return_deadline_text = f"Noch {remaining_days} Tage Rückgabefrist"
+                record.return_deadline_text = _('Noch %(days)s Tage Rückgabefrist') % {
+                    'days': remaining_days,
+                }
             else:
                 record.return_days_expired = abs(remaining_days)
-                record.return_deadline_text = f"Frist seit {abs(remaining_days)} Tagen abgelaufen"
+                record.return_deadline_text = _('Frist seit %(days)s Tagen abgelaufen') % {
+                    'days': abs(remaining_days),
+                }
 
     def _is_return_deadline_expired(self):
         """Kapselt die Fristentscheidung, damit die Button-Logik lesbar bleibt."""
@@ -228,7 +243,12 @@ class RmaOrder(models.TransientModel):
             self._raise_unexpected_error(_('Die Fristprüfung konnte nicht geöffnet werden.'), error)
 
     def _open_rma_splitting_for_picking(self, picking):
-        """Leitet nach der Erstellung direkt in die Mengenprüfung für den Beleg."""
+        """Leitet nach der Erstellung direkt in die Mengenprüfung für den Beleg.
+
+        Die URL ist hier bewusst gesetzt: In Odoo 19 öffnete eine reine
+        act_window-Rückgabe nach dem Fristdialog wieder den Lagerbeleg statt des
+        vorbereiteten Mengenprüfungswizards.
+        """
         self.ensure_one()
 
         try:
@@ -377,7 +397,7 @@ class RmaOrderLine(models.TransientModel):
                 line.return_qty = len(line.selected_serial_lot_ids)
 
     def _get_returnable_serial_lots(self):
-        """Ermittelt die auswählbaren Seriennummern aus erledigten Lieferungen."""
+        """Ermittelt auswählbare Seriennummern per Datenbankdomain statt Python-Filter."""
         self.ensure_one()
         if (
             not self._is_rma_serial_tracking_enabled()
@@ -386,9 +406,18 @@ class RmaOrderLine(models.TransientModel):
         ):
             return self.env['stock.lot']
 
-        delivered_move_lines = self.sale_order_line_id.move_ids.filtered(
-            lambda move: move.state == 'done' and move.picking_id.picking_type_code == 'outgoing'
-        ).move_line_ids.filtered(lambda move_line: move_line.lot_id and move_line.quantity > 0)
+        move_line_domain = [
+            ('move_id.state', '=', 'done'),
+            ('picking_id.picking_type_code', '=', 'outgoing'),
+            ('product_id', '=', self.product_id.id),
+            ('lot_id', '!=', False),
+            ('quantity', '>', 0),
+        ]
+        if 'sale_line_id' in self.env['stock.move']._fields:
+            move_line_domain.append(('move_id.sale_line_id', '=', self.sale_order_line_id.id))
+        else:
+            move_line_domain.append(('move_id', 'in', self.sale_order_line_id.move_ids.ids))
+        delivered_move_lines = self.env['stock.move.line'].search(move_line_domain)
         delivered_lots = delivered_move_lines.lot_id
         if not delivered_lots:
             return delivered_lots
@@ -528,10 +557,12 @@ class RmaDeadlineConfirmation(models.TransientModel):
     def _compute_message_text(self):
         """Formatiert den Hinweistext im Dialog."""
         for record in self:
-            record.message_text = (
-                f"Die Rückgabefrist ist seit {record.days_expired} Tagen abgelaufen.\n"
-                f"Soll trotzdem ein RMA-Eingang erstellt werden?"
-            )
+            record.message_text = _(
+                "Die Rückgabefrist ist seit %(days)s Tagen abgelaufen.\n"
+                "Soll trotzdem ein RMA-Eingang erstellt werden?"
+            ) % {
+                'days': record.days_expired,
+            }
 
     def action_confirm_create_rma(self):
         """Bestätigung protokollieren und RMA-Erstellung fortsetzen."""

@@ -1,6 +1,6 @@
 from markupsafe import Markup, escape
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 
 
 class RmaAuditLog(models.Model):
@@ -122,5 +122,8 @@ class RmaAuditLog(models.Model):
             parts.append(Markup('<pre>%s</pre>') % escape(self.details))
         if self.generated_picking_ids:
             generated_names = ', '.join(self.generated_picking_ids.mapped('name'))
-            parts.append(Markup('<p><strong>Erzeugte Belege:</strong> %s</p>') % escape(generated_names))
+            parts.append(Markup('<p><strong>%s</strong> %s</p>') % (
+                escape(_('Erzeugte Belege:')),
+                escape(generated_names),
+            ))
         return Markup('').join(parts)

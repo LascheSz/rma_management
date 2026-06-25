@@ -50,57 +50,58 @@ class RmaOrderService(models.AbstractModel):
         wizard.ensure_one()
 
         try:
-            picking_type = self._get_rma_stock_configuration()._get_picking_type('incoming')
-            valid_lines = self._get_valid_return_lines(wizard)
+            with self.env.cr.savepoint():
+                picking_type = self._get_rma_stock_configuration()._get_picking_type('incoming')
+                valid_lines = self._get_valid_return_lines(wizard)
 
-            picking = self.env['stock.picking'].create({
-                'picking_type_id': picking_type.id,
-                'partner_id': wizard.partner_id.id,
-                'origin': f"RMA: {wizard.sale_order_id.name}",
-                'location_id': picking_type.default_location_src_id.id or wizard.partner_id.property_stock_customer.id,
-                'location_dest_id': picking_type.default_location_dest_id.id,
-                'rma_reason_id': wizard.rma_reason_id.id,
-                'rma_sale_order_id': wizard.sale_order_id.id,
-            })
+                picking = self.env['stock.picking'].create({
+                    'picking_type_id': picking_type.id,
+                    'partner_id': wizard.partner_id.id,
+                    'origin': f"RMA: {wizard.sale_order_id.name}",
+                    'location_id': picking_type.default_location_src_id.id or wizard.partner_id.property_stock_customer.id,
+                    'location_dest_id': picking_type.default_location_dest_id.id,
+                    'rma_reason_id': wizard.rma_reason_id.id,
+                    'rma_sale_order_id': wizard.sale_order_id.id,
+                })
 
-            move_model = self.env['stock.move']
-            moves_by_line = {}
-            for line in valid_lines:
-                # sale_line_id wird nur gesetzt, wenn die verwendete Odoo-Version das Feld kennt.
-                move_values = {
-                    'product_id': line.product_id.id,
-                    'product_uom_qty': line.return_qty,
-                    'product_uom': line.product_uom.id,
-                    'picking_id': picking.id,
-                    'location_id': picking.location_id.id,
-                    'location_dest_id': picking.location_dest_id.id,
-                    'description_picking': line.product_id.display_name,
-                }
-                if 'sale_line_id' in move_model._fields:
-                    move_values['sale_line_id'] = line.sale_order_line_id.id
-                moves_by_line[line] = move_model.create(move_values)
+                move_model = self.env['stock.move']
+                moves_by_line = {}
+                for line in valid_lines:
+                    # sale_line_id wird nur gesetzt, wenn die verwendete Odoo-Version das Feld kennt.
+                    move_values = {
+                        'product_id': line.product_id.id,
+                        'product_uom_qty': line.return_qty,
+                        'product_uom': line.product_uom.id,
+                        'picking_id': picking.id,
+                        'location_id': picking.location_id.id,
+                        'location_dest_id': picking.location_dest_id.id,
+                        'description_picking': line.product_id.display_name,
+                    }
+                    if 'sale_line_id' in move_model._fields:
+                        move_values['sale_line_id'] = line.sale_order_line_id.id
+                    moves_by_line[line] = move_model.create(move_values)
 
-            picking.action_confirm()
-            # Bei Seriennummern ersetzen wir die automatisch erzeugten Move-Lines
-            # durch exakte Zeilen je ausgewählter Seriennummer.
-            self._create_selected_serial_move_lines(moves_by_line)
+                picking.action_confirm()
+                # Bei Seriennummern ersetzen wir die automatisch erzeugten Move-Lines
+                # durch exakte Zeilen je ausgewählter Seriennummer.
+                self._create_selected_serial_move_lines(moves_by_line)
 
-            for original_picking in wizard.sale_order_id.picking_ids:
-                if original_picking.picking_type_code == 'outgoing':
-                    original_picking.rma_receipt_created = True
+                for original_picking in wizard.sale_order_id.picking_ids:
+                    if original_picking.picking_type_code == 'outgoing':
+                        original_picking.rma_receipt_created = True
 
-            self._get_audit_log().log_event(
-                'receipt_created',
-                _('RMA-Eingang %(picking)s aus %(order)s erstellt') % {
-                    'picking': picking.name,
-                    'order': wizard.sale_order_id.name,
-                },
-                sale_order=wizard.sale_order_id,
-                picking=picking,
-                details=self._get_audit_log()._build_quantity_details(valid_lines),
-            )
+                self._get_audit_log().log_event(
+                    'receipt_created',
+                    _('RMA-Eingang %(picking)s aus %(order)s erstellt') % {
+                        'picking': picking.name,
+                        'order': wizard.sale_order_id.name,
+                    },
+                    sale_order=wizard.sale_order_id,
+                    picking=picking,
+                    details=self._get_audit_log()._build_quantity_details(valid_lines),
+                )
 
-            return picking
+                return picking
         except (UserError, ValidationError):
             raise
         except Exception as error:
@@ -156,22 +157,23 @@ class RmaOrderService(models.AbstractModel):
 
     @api.model
     def get_already_returned_lots(self, sale_order_line, product):
-        """Findet bereits retournierte Seriennummern, damit sie nicht erneut auswählbar sind."""
+        """Findet bereits retournierte Seriennummern per Move-Line-Domain."""
         if not sale_order_line or product.tracking == 'none':
             return self.env['stock.lot']
 
         move_model = self.env['stock.move']
         picking_type = self._get_rma_stock_configuration()._get_picking_type('incoming')
-        domain = [
+        move_line_domain = [
             ('picking_id.picking_type_id', '=', picking_type.id),
             ('picking_id.state', '!=', 'cancel'),
             ('product_id', '=', product.id),
+            ('lot_id', '!=', False),
         ]
         if 'sale_line_id' in move_model._fields:
-            domain.append(('sale_line_id', '=', sale_order_line.id))
+            move_line_domain.append(('move_id.sale_line_id', '=', sale_order_line.id))
         else:
-            domain.append(('picking_id.origin', '=', f"RMA: {sale_order_line.order_id.name}"))
-        return move_model.search(domain).move_line_ids.lot_id
+            move_line_domain.append(('picking_id.origin', '=', f"RMA: {sale_order_line.order_id.name}"))
+        return self.env['stock.move.line'].search(move_line_domain).lot_id
 
     def _create_selected_serial_move_lines(self, moves_by_line):
         """Legt pro gewählter Seriennummer eine konkrete Move-Line im RMA-Eingang an."""
@@ -458,22 +460,23 @@ class RmaSplittingService(models.AbstractModel):
         wizard.ensure_one()
 
         try:
-            self._validate_rma_and_quantities(wizard)
-            created_pickings = self._create_follow_up_pickings(wizard)
-            self._attach_inspection_files(wizard, created_pickings)
-            self._write_note_and_mark_done(wizard)
-            self._complete_rma_receipt(wizard)
-            self._get_audit_log().log_event(
-                'split_completed',
-                _('Mengenprüfung für %(picking)s abgeschlossen') % {
-                    'picking': wizard.rma_order_id.name,
-                },
-                picking=wizard.rma_order_id,
-                generated_pickings=created_pickings,
-                details=self._prepare_split_audit_details(wizard, created_pickings),
-                attachment_ids=wizard.rma_attachment_ids.ids,
-            )
-            return created_pickings
+            with self.env.cr.savepoint():
+                self._validate_rma_and_quantities(wizard)
+                created_pickings = self._create_follow_up_pickings(wizard)
+                self._attach_inspection_files(wizard, created_pickings)
+                self._write_note_and_mark_done(wizard)
+                self._complete_rma_receipt(wizard)
+                self._get_audit_log().log_event(
+                    'split_completed',
+                    _('Mengenprüfung für %(picking)s abgeschlossen') % {
+                        'picking': wizard.rma_order_id.name,
+                    },
+                    picking=wizard.rma_order_id,
+                    generated_pickings=created_pickings,
+                    details=self._prepare_split_audit_details(wizard, created_pickings),
+                    attachment_ids=wizard.rma_attachment_ids.ids,
+                )
+                return created_pickings
         except (UserError, ValidationError):
             raise
         except Exception as error:
@@ -493,7 +496,7 @@ class RmaSplittingService(models.AbstractModel):
             else:
                 serial_text = '-'
             detail_lines.append(
-                '%(product)s: A=%(a)s, B=%(b)s, C=%(c)s, Umtausch=%(exchange)s, Rückerstattung=%(refund)s, Serien=%(serials)s' % {
+                _('%(product)s: A=%(a)s, B=%(b)s, C=%(c)s, Umtausch=%(exchange)s, Rückerstattung=%(refund)s, Serien=%(serials)s') % {
                     'product': line.product_id.display_name,
                     'a': line.rma_qty_a,
                     'b': line.rma_qty_b,
@@ -505,7 +508,9 @@ class RmaSplittingService(models.AbstractModel):
             )
         if created_pickings:
             detail_lines.append('')
-            detail_lines.append('Erzeugte Belege: %s' % ', '.join(created_pickings.mapped('name')))
+            detail_lines.append(_('Erzeugte Belege: %(pickings)s') % {
+                'pickings': ', '.join(created_pickings.mapped('name')),
+            })
         return '\n'.join(detail_lines)
 
     def _attach_inspection_files(self, wizard, created_pickings):
