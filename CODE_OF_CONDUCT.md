@@ -36,7 +36,7 @@ Projektbetreuer haben das Recht und die Verantwortung, Kommentare, Commits, Code
 
 ## Berichterstattung
 
-Fälle von missbräuchlichem, belästigendem oder anderweitig inakzeptablem Verhalten können dem Projektteam unter **conduct@msv-systemhaus.de** gemeldet werden. Alle Beschwerden werden überprüft und untersucht und führen zu einer Antwort, die für die Umstände notwendig und angemessen ist. Das Projektteam ist verpflichtet, die Vertraulichkeit des Berichters zu wahren.
+Fälle von missbräuchlichem, belästigendem oder anderweitig inakzeptablem Verhalten können dem Projektteam unter **info@msv-systemhaus.de** gemeldet werden. Alle Beschwerden werden überprüft und untersucht und führen zu einer Antwort, die für die Umstände notwendig und angemessen ist. Das Projektteam ist verpflichtet, die Vertraulichkeit des Berichters zu wahren.
 
 ---
 
