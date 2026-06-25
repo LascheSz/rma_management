@@ -1,0 +1,167 @@
+PROPRIETÄRE LIZENZ
+RMA Management Modul für Odoo
+
+Copyright © 2026 MSV Systemhaus Martin Schlaak GmbH
+Alle Rechte vorbehalten.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+LIZENZBESTIMMUNGEN
+
+1. EIGENTUM UND URHEBERRECHT
+   
+   Dieses RMA Management Modul ("Software") ist Eigentum von:
+   
+   MSV Systemhaus Martin Schlaak GmbH
+   [Adresse]
+   [Kontakt]
+   
+   Alle Urheberrechte, Patentrechte und sonstigen Schutzrechte bleiben 
+   vollständig bei MSV Systemhaus Martin Schlaak GmbH.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+2. LIZENZGEWÄHRUNG
+
+   Diese Software darf AUSSCHLIESSLICH von MSV Systemhaus Martin Schlaak GmbH 
+   und von Personen/Organisationen verwendet werden, die von MSV Systemhaus 
+   Martin Schlaak GmbH ausdrücklich schriftlich dazu berechtigt wurden.
+
+   Eine Lizenzgewährung an Dritte ist nur mit vorheriger schriftlicher 
+   Zustimmung von MSV Systemhaus Martin Schlaak GmbH zulässig.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+3. VERBOTENE HANDLUNGEN
+
+   Ohne ausdrückliche schriftliche Genehmigung von MSV Systemhaus Martin 
+   Schlaak GmbH ist es strengstens untersagt:
+
+   a) Die Software ganz oder teilweise zu kopieren, zu vervielfältigen oder 
+      zu verbreiten
+   
+   b) Die Software an Dritte weiterzugeben, zu verleihen, zu vermieten oder 
+      zu verkaufen
+   
+   c) Den Quellcode der Software zu analysieren, zu dekompilieren, zu 
+      disassemblieren oder anderweitig zu versuchen, die Funktionsweise 
+      offenzulegen
+   
+   d) Die Software zu modifizieren, zu ändern oder abgeleitete Werke zu 
+      erstellen
+   
+   e) Die Software für kommerzielle Zwecke zu nutzen, ohne dass eine 
+      entsprechende Lizenzvereinbarung vorliegt
+   
+   f) Die Software öffentlich zugänglich zu machen oder in öffentliche 
+      Repositories (wie GitHub, GitLab, etc.) hochzuladen
+   
+   g) Urheberrechtsvermerke, Lizenzhinweise oder andere Schutzhinweise 
+      zu entfernen oder zu ändern
+
+═══════════════════════════════════════════════════════════════════════════════
+
+4. ERLAUBTE NUTZUNG
+
+   Die Software darf nur für folgende Zwecke genutzt werden:
+
+   a) Interne Nutzung durch MSV Systemhaus Martin Schlaak GmbH
+   
+   b) Nutzung durch Kunden von MSV Systemhaus Martin Schlaak GmbH, die eine 
+      entsprechende Lizenzvereinbarung unterzeichnet haben
+   
+   c) Nutzung im Rahmen von Dienstleistungen, die von MSV Systemhaus Martin 
+      Schlaak GmbH erbracht werden
+
+═══════════════════════════════════════════════════════════════════════════════
+
+5. KEINE WEITERGABE
+
+   Die Software darf unter keinen Umständen an Dritte weitergegeben werden, 
+   es sei denn:
+
+   a) Eine schriftliche Lizenzvereinbarung mit MSV Systemhaus Martin Schlaak 
+      GmbH liegt vor
+   
+   b) Die Weitergabe erfolgt im Rahmen von Dienstleistungen durch 
+      MSV Systemhaus Martin Schlaak GmbH
+
+═══════════════════════════════════════════════════════════════════════════════
+
+6. ÄNDERUNGEN UND MODIFIKATIONEN
+
+   Änderungen am Quellcode sind ohne ausdrückliche schriftliche Genehmigung 
+   von MSV Systemhaus Martin Schlaak GmbH nicht gestattet.
+
+   Modifikationen, die ohne Genehmigung vorgenommen werden, führen zum 
+   sofortigen Entzug der Nutzungslizenz.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+7. HAFTUNGSAUSSCHLUSS
+
+   Die Software wird "wie besehen" bereitgestellt. MSV Systemhaus Martin 
+   Schlaak GmbH übernimmt keine Haftung für:
+
+   a) Direkte oder indirekte Schäden
+   b) Datenverluste
+   c) Geschäftsunterbrechungen
+   d) Entgangene Gewinne
+   e) Sonstige Schäden, die sich aus der Nutzung oder Unmöglichkeit der 
+      Nutzung ergeben
+
+═══════════════════════════════════════════════════════════════════════════════
+
+8. DATENSCHUTZ UND COMPLIANCE
+
+   Die Nutzung der Software erfolgt unter Einhaltung aller geltenden 
+   Datenschutzgesetze und Compliance-Anforderungen.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+9. KÜNDIGUNG
+
+   Diese Lizenz kann jederzeit von MSV Systemhaus Martin Schlaak GmbH 
+   beendet werden, wenn:
+
+   a) Der Lizenznehmer gegen diese Bedingungen verstößt
+   b) Der Lizenznehmer die Software unbefugt weitergibt
+   c) Der Lizenznehmer die Software modifiziert
+   d) Der Lizenznehmer die Software öffentlich zugänglich macht
+
+   Im Falle einer Kündigung müssen alle Kopien der Software vernichtet werden.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+10. GELTENDES RECHT
+
+    Diese Lizenz unterliegt den Gesetzen der Bundesrepublik Deutschland.
+    
+    Gerichtsstand ist der Sitz von MSV Systemhaus Martin Schlaak GmbH.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+11. KONTAKT FÜR LIZENZFRAGEN
+
+    Für Fragen zur Lizenzierung oder für Anfragen bezüglich einer 
+    Lizenzgewährung kontaktieren Sie bitte:
+
+    MSV Systemhaus Martin Schlaak GmbH
+    [E-Mail]
+    [Telefon]
+    [Website]
+
+═══════════════════════════════════════════════════════════════════════════════
+
+WARNUNG: 
+Unbefugte Nutzung, Verbreitung oder Modifikation dieser Software ist eine 
+Verletzung von Urheberrechten und Gesetzen und kann zu zivil- und 
+strafrechtlichen Konsequenzen führen.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Version: 1.0
+Gültig ab: Juni 2026
+Letzte Aktualisierung: Juni 2026
+
+MSV Systemhaus Martin Schlaak GmbH

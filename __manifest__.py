@@ -4,8 +4,9 @@
     'version': '1.0',
     'summary': 'RMA-Erstellung und Mengenprüfung',
     'description': 'Erfassen von RMAs basierend auf Verkaufsaufträgen.',
-    'author': 'msv Systemhaus | Emanuel Laschinsky',
-    'license': 'LGPL-3',
+    'author': 'MSV Systemhaus Martin Schlaak GmbH',
+    'license': 'Proprietary',
+    'copyright': 'Copyright © 2026 MSV Systemhaus Martin Schlaak GmbH. All rights reserved.',
     'category': 'Inventory',
     'depends': ['sale_management', 'stock', 'base', 'product', 'web'],
     # Reihenfolge ist wichtig: Rechte/Daten zuerst, danach Views und Menüs.
@@ -33,4 +34,8 @@
     },
     'installable': True,
     'application': True,
+    'external_dependencies': {
+        'python': [],
+        'bin': [],
+    },
 }

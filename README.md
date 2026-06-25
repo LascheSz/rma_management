@@ -2,8 +2,10 @@
 
 > **Professionelle Rückgabeverwaltung mit automatischer Warenklassifizierung**
 
+⚠️ **PROPRIETÄRE SOFTWARE - Nur für MSV Systemhaus Martin Schlaak GmbH**
+
 [![Odoo Version](https://img.shields.io/badge/Odoo-16.0%2B-blue?style=flat-square)](https://www.odoo.com)
-[![License](https://img.shields.io/badge/License-LGPL--3.0-green?style=flat-square)](LICENSE)
+[![License](https://img.shields.io/badge/License-Proprietary-red?style=flat-square)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue?style=flat-square)](https://www.python.org)
 
 ---
@@ -457,15 +459,24 @@ Haben Sie ein Problem gefunden? Melden Sie es auf GitHub:
 
 ## 📄 Lizenz
 
-Dieses Modul ist unter der **LGPL-3.0 Lizenz** lizenziert.
+⚠️ **PROPRIETÄRE LIZENZ**
 
-```
-Copyright (c) 2026 RMA Management Team
+Dieses Modul ist **Eigentum von MSV Systemhaus Martin Schlaak GmbH** und darf:
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License.
-```
+✅ **NUR verwendet werden von:**
+- MSV Systemhaus Martin Schlaak GmbH
+- Autorisierten Partnern mit schriftlicher Genehmigung
+
+❌ **NICHT erlaubt:**
+- Weitergabe an Dritte
+- Modifikationen ohne Genehmigung
+- Veröffentlichung des Quellcodes
+- Kommerzielle Nutzung ohne Lizenzvereinbarung
+- Dekompilierung oder Reverse Engineering
+
+**Alle Urheberrechte vorbehalten © 2026 MSV Systemhaus Martin Schlaak GmbH**
+
+Detaillierte Lizenzbestimmungen: Siehe [LICENSE](LICENSE) Datei
 
 ---
 
@@ -477,9 +488,11 @@ Vielen Dank an alle Contributor und die Odoo-Community für ihre Unterstützung!
 
 <div align="center">
 
-**Made with ❤️ for Odoo**
+**Made with ❤️ for Odoo by MSV Systemhaus Martin Schlaak GmbH**
 
-[⭐ GitHub](https://github.com/LascheSz/rma_management) • [📧 Kontakt](mailto:support@example.com) • [🌐 Website](https://example.com)
+⚠️ **Proprietary Software - Unauthorized use is prohibited**
+
+[📧 Kontakt](mailto:support@example.com) • [🌐 Website](https://example.com)
 
 </div>
 
