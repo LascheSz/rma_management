@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Eigene Kategorie für die RMA-Rechte im Benutzerformular. -->
+    <record id="module_category_rma_management" model="ir.module.category">
+        <field name="name">RMA Management</field>
+        <field name="sequence">35</field>
+    </record>
+
+    <!-- Privilege bündelt Benutzer- und Managergruppe unter einem RMA-Rechteblock. -->
+    <record id="privilege_rma_management" model="res.groups.privilege">
+        <field name="name">RMA Management</field>
+        <field name="category_id" ref="module_category_rma_management"/>
+        <field name="sequence">35</field>
+    </record>
+
+    <!-- Operative Benutzer dürfen RMA-Wizards und Übersichten verwenden. -->
+    <record id="group_rma_user" model="res.groups">
+        <field name="name">RMA Benutzer</field>
+        <field name="privilege_id" ref="privilege_rma_management"/>
+        <field name="implied_ids" eval="[(4, ref('stock.group_stock_user'))]"/>
+    </record>
+
+    <!-- Manager erben Benutzerrechte und zusätzlich Lager-Managerrechte. -->
+    <record id="group_rma_manager" model="res.groups">
+        <field name="name">RMA Manager</field>
+        <field name="privilege_id" ref="privilege_rma_management"/>
+        <field name="implied_ids" eval="[(4, ref('group_rma_user')), (4, ref('stock.group_stock_manager'))]"/>
+    </record>
+</odoo>

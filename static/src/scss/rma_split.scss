@@ -1,0 +1,68 @@
+// Mengenprüfung: Formular und Prüf-Leitfaden stehen auf großen Screens nebeneinander.
+.rma_management_split_form {
+    &.o_form_renderer,
+    .o_form_renderer {
+        align-items: flex-start;
+        display: flex;
+        gap: 28px;
+        max-width: none;
+        width: 100%;
+    }
+
+    .o_form_sheet_bg {
+        flex: 1 1 0;
+        min-width: 0;
+        width: auto;
+    }
+
+    .o_form_sheet {
+        max-width: none;
+    }
+
+    .rma_management_guide {
+        // Der Leitfaden bleibt sichtbar, ohne die eigentliche Prüftabelle zu verkleinern.
+        align-self: flex-start;
+        background: var(--o-view-background-color, #fff);
+        border: 1px solid var(--border-color, #d8dadd);
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        flex: 0 0 clamp(460px, 28vw, 620px);
+        margin: var(--formView-sheetBg-padding-y, 16px) var(--formView-sheetBg-padding-x, 16px) 0 0;
+        min-width: 0;
+        padding: 20px;
+        position: sticky;
+        top: 16px;
+
+        h4 {
+            border-bottom: 1px solid var(--border-color, #d8dadd);
+            color: var(--o-brand-primary, #714b67);
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin: 0 0 12px;
+            padding-bottom: 10px;
+        }
+
+        img {
+            border: 1px solid var(--border-color, #d8dadd);
+            border-radius: 8px;
+            display: block;
+            height: auto;
+            width: 100%;
+        }
+    }
+}
+
+@media (max-width: 1100px) {
+    // Unterhalb der Desktopbreite wandert der Leitfaden unter das Formular.
+    .rma_management_split_form {
+        &.o_form_renderer,
+        .o_form_renderer {
+            display: block;
+        }
+
+        .rma_management_guide {
+            margin: 0 var(--formView-sheetBg-padding-x, 16px) var(--formView-sheetBg-padding-y, 16px);
+            max-width: 920px;
+        }
+    }
+}

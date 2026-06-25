@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- Einstieg in die RMA-Erstellung. -->
+        <record id="action_rma_management_dashboard" model="ir.actions.act_window">
+            <field name="name">RMA Center</field>
+            <field name="res_model">rma.order</field>
+            <field name="view_mode">form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Erstelle eine neue RMA</p>
+            </field>
+        </record>
+
+        <!-- Hauptmenue des Moduls im Lager. -->
+        <menuitem id="menu_rma_management_root"
+                  name="RMA Management"
+                  web_icon="rma_management,static/description/icon.jpeg"
+                  action="action_rma_management_dashboard"
+                  groups="rma_management.group_rma_user"
+                  sequence="10"/>
+
+        <!-- Untermenue fuer die Erstellung eines neuen RMA-Eingangs. -->
+        <menuitem id="menu_rma_erstellung"
+                  name="Erstellung"
+                  parent="menu_rma_management_root"
+                  action="action_rma_management_dashboard"
+                  groups="rma_management.group_rma_user"
+                  sequence="10"/>
+
+        <!-- Untermenue fuer die spaetere Aufteilung nach A-, B- und C-Ware. -->
+        <menuitem id="menu_rma_mengenpruefung"
+                  name="Mengenprüfung"
+                  parent="menu_rma_management_root"
+                  action="action_rma_management_splitting"
+                  groups="rma_management.group_rma_user"
+                  sequence="20"/>
+
+        <!-- Formular fuer die Erstellung eines RMA-Eingangs aus einem Verkaufsauftrag. -->
+        <record id="view_rma_management_form" model="ir.ui.view">
+            <field name="name">rma.order.form</field>
+            <field name="model">rma.order</field>
+            <field name="arch" type="xml">
+                <form string="RMA-Erstellung" class="rma_management_form">
+                    <header>
+                        <!-- Dieser Button legt den eigentlichen Lagerbeleg vom Typ RMA-Eingang an. -->
+                        <button name="action_create_return_picking" 
+                                string="Lieferschein Erstellen"
+                                type="object"
+                                class="oe_highlight"
+                                invisible="not sale_order_id" />
+                    </header>
+                    <sheet>
+                        <div class="alert alert-info mb-3" role="alert" invisible="sale_order_id">
+                            Bitte zuerst einen Verkaufsauftrag auswählen. Danach können die Rückgabemengen eingetragen werden.
+                        </div>
+                        <!-- Auswahl des Verkaufsauftrags, aus dem die Rueckgabe erzeugt wird. -->
+                        <group string="Auftragsreferenz">
+                            <field name="sale_order_id" options="{'no_create': True, 'no_open': True}" />
+                            <field name="rma_reason_id" options="{'no_create_edit': False}"/>
+                            <field name="has_serial_lots" invisible="1"/>
+                        </group>
+                        <!-- Diese Daten dienen nur der schnellen Uebersicht des Kunden. -->
+                        <group string="Kunden- und Adressinformationen" invisible="not sale_order_id" col="3" class="rma_management_customer_group">
+                            <group class="rma_management_customer_image">
+                                <field name="image_1920" widget="image" class="oe_avatar" options='{"preview_image": "image_128"}' nolabel="1"/>
+                            </group>
+                            <group>
+                                <field name="partner_id"/>
+                                <field name="partner_street" />
+                                <field name="partner_plz" />
+                                <field name="partner_city" />
+                            </group>
+                            <group>
+                                <field name="vat" />
+                                <field name="website" />
+                                <field name="partner_email" />
+                                <field name="partner_phone" />
+                                <field name="return_deadline_days" readonly="1"/>
+                                <field name="return_deadline_date" readonly="1"/>
+                                <field name="return_deadline_text" readonly="1"/>
+                            </group>
+                        </group>
+                        <!-- Hier wird pro Auftragsposition die Rueckgabemenge eingetragen. -->
+                        <div class="rma_management_table_section" invisible="not sale_order_id">
+                            <separator string="Belegpositionen"/>
+                            <field name="line_ids" nolabel="1" class="rma_management_line_table rma_management_creation_table">
+                                <list editable="bottom" create="false" delete="false">
+                                    <field name="sale_order_line_id" column_invisible="1" force_save="1"/>
+                                    <field name="has_serial_lots" column_invisible="1"/>
+                                    <field name="available_serial_lot_ids" column_invisible="1"/>
+                                    <field name="product_id" readonly="1" width="480px"/>
+                                    <button name="action_open_serial_selection"
+                                            type="object"
+                                            icon="fa-barcode"
+                                            title="Seriennummern auswählen"
+                                            column_invisible="not parent.has_serial_lots"
+                                            invisible="not has_serial_lots"/>
+                                    <field name="selected_serial_count" readonly="1" string="Serien" width="90px" column_invisible="not parent.has_serial_lots"/>
+                                    <field name="product_uom_qty" readonly="1" string="Bestellt" width="120px"/>
+                                    <field name="returned_qty" readonly="1" string="Bereits retourniert" width="160px"/>
+                                    <field name="available_qty" readonly="1" string="Noch möglich" width="130px"/>
+                                    <field name="return_qty" string="Rückgabemenge" width="150px" readonly="has_serial_lots"/>
+                                </list>
+                            </field>
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Kleine Bestaetigungsmaske, wenn die Rueckgabefrist bereits abgelaufen ist. -->
+        <record id="view_rma_management_deadline_confirmation_form" model="ir.ui.view">
+            <field name="name">rma.deadline.confirmation.form</field>
+            <field name="model">rma.deadline.confirmation</field>
+            <field name="arch" type="xml">
+                <form string="Rückgabefrist überschritten">
+                    <sheet>
+                        <group>
+                            <field name="rma_id" invisible="1"/>
+                            <field name="days_expired" readonly="1"/>
+                            <field name="message_text" readonly="1" nolabel="1"/>
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button name="action_confirm_create_rma"
+                                string="Ja, trotzdem erstellen"
+                                type="object"
+                                class="oe_highlight"/>
+                        <button name="action_cancel_create_rma"
+                                string="Nein"
+                                type="object"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Auf dem Kunden kann die individuelle Rueckgabefrist gepflegt werden. -->
+        <record id="view_partner_form_inherit_rma_deadline" model="ir.ui.view">
+            <field name="name">res.partner.form.inherit.rma.deadline</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='phone']" position="after">
+                    <field name="rma_return_deadline_days"/>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Auf RMA-Eingaengen soll der normale Odoo-Retourenbutton nicht mehr sichtbar sein. -->
+        <record id="view_picking_form_inherit_rma" model="ir.ui.view">
+            <field name="name">stock.picking.form.inherit.rma</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/header" position="inside">
+                    <field name="rma_is_receipt" invisible="1"/>
+                    <field name="rma_has_serial_lots" invisible="1"/>
+                </xpath>
+                <xpath expr="//field[@name='origin']" position="after">
+                    <field name="rma_reason_id" readonly="1" invisible="not rma_is_receipt"/>
+                    <field name="rma_status" readonly="1" invisible="not rma_is_receipt"/>
+                    <field name="rma_sale_order_id" readonly="1" invisible="not rma_is_receipt"/>
+                </xpath>
+                <xpath expr="//page[@name='note']" position="after">
+                    <page string="RMA Prüfung" name="rma_inspection" invisible="not rma_is_receipt">
+                        <group>
+                            <field name="rma_attachment_ids" widget="many2many_binary" readonly="state == 'done'"/>
+                        </group>
+                        <separator string="Seriennummern / Q-Klassen" invisible="not rma_has_serial_lots"/>
+                        <field name="move_line_ids" readonly="1" nolabel="1" invisible="not rma_has_serial_lots">
+                            <list create="false" edit="false" delete="false">
+                                <field name="product_id"/>
+                                <field name="lot_id" string="Seriennummer"/>
+                                <field name="rma_quality_class"/>
+                                <field name="quantity"/>
+                            </list>
+                        </field>
+                    </page>
+                </xpath>
+                <xpath expr="//button[@name='%(stock.act_stock_return_picking)d']" position="attributes">
+                    <attribute name="invisible">state != 'done' or rma_is_receipt</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_rma_order_line_serial_selection_form" model="ir.ui.view">
+            <field name="name">rma.order.line.serial.selection.form</field>
+            <field name="model">rma.order.line</field>
+            <field name="arch" type="xml">
+                <form string="Seriennummern auswählen">
+                    <sheet>
+                        <group>
+                            <field name="product_id" readonly="1"/>
+                            <field name="available_qty" readonly="1"/>
+                            <field name="return_qty" readonly="1"/>
+                            <field name="available_serial_lot_ids" invisible="1"/>
+                        </group>
+                        <separator string="Seriennummern aus dem Lieferbeleg"/>
+                        <field name="selected_serial_lot_ids"
+                               widget="many2many_checkboxes"
+                               nolabel="1"
+                               domain="[('id', 'in', available_serial_lot_ids)]"/>
+                    </sheet>
+                    <footer>
+                        <button name="action_apply_serial_selection"
+                                string="Übernehmen"
+                                type="object"
+                                class="oe_highlight"/>
+                        <button string="Abbrechen" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

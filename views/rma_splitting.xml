@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Server-Action, damit der Header-Button im Wizard sauber auf die Python-Aktion zeigt. -->
+    <record id="action_rma_management_execute_split" model="ir.actions.server">
+        <field name="name">RMA Mengenprüfung durchführen</field>
+        <field name="model_id" ref="model_rma_splitting"/>
+        <field name="binding_model_id" ref="model_rma_splitting"/>
+        <field name="state">code</field>
+        <field name="code">if records:action = records.action_execute_split()</field>
+    </record>
+
+    <!-- Hauptformular der Mengenprüfung: RMA-Eingang links, Prüf-Leitfaden rechts daneben. -->
+    <record id="view_rma_management_splitting_form_custom" model="ir.ui.view">
+        <field name="name">rma.splitting.form.custom</field>
+        <field name="model">rma.splitting</field>
+        <field name="arch" type="xml">
+            <form string="RMA-Mengenprüfung" class="o_form_full_width rma_management_form rma_management_split_form">
+                <header>
+                    <!-- Nach Durchführung wird der Wizard gesperrt, damit keine Doppelbuchung entsteht. -->
+                    <button name="%(action_rma_management_execute_split)d"
+                            string="Durchführen"
+                            type="action"
+                            class="oe_highlight"
+                            invisible="not rma_order_id or processing_done"/>
+                    <field name="processing_done" invisible="1"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info mb-3" role="alert" invisible="rma_order_id">
+                        Bitte zuerst einen RMA-Eingang auswählen. Danach können die Mengen geprüft werden.
+                    </div>
+                    <div class="alert alert-success fs-4 fw-bold py-3"
+                         role="alert"
+                         invisible="not processing_done">
+                        Dieser RMA-Eingang wurde bereits vollständig durchgeführt und ist gesperrt.
+                    </div>
+                    <group string="Auftragsreferenz">
+                        <!-- Der unsichtbare Eingangstyp begrenzt die Auswahl auf echte RMA-Eingänge. -->
+                        <field name="rma_incoming_picking_type_id" invisible="1"/>
+                        <field name="rma_order_id"
+                               domain="[('picking_type_id', '=', rma_incoming_picking_type_id)]"
+                               options="{'no_create': True, 'no_open': True}" />
+                        <field name="rma_reason_id" readonly="1"/>
+                        <field name="has_serial_lots" invisible="1"/>
+                    </group>
+
+                    <group string="Kunden- und Adressinformationen" invisible="not rma_order_id" col="3" class="rma_management_customer_group">
+                        <group class="rma_management_customer_image">
+                            <field name="image_1920" widget="image" class="oe_avatar" options='{"preview_image": "image_128"}' readonly="1" nolabel="1"/>
+                        </group>
+                        <group>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="partner_street" readonly="1"/>
+                            <field name="partner_plz" readonly="1"/>
+                            <field name="partner_city" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="vat" readonly="1"/>
+                            <field name="website" readonly="1"/>
+                            <field name="partner_email" readonly="1"/>
+                            <field name="partner_phone" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <div class="rma_management_table_section" invisible="not rma_order_id">
+                        <separator string="Retouren Prüfung"/>
+                        <field name="line_ids" nolabel="1" class="rma_management_line_table rma_management_split_table" readonly="processing_done">
+                            <list editable="bottom" create="false" delete="false">
+                                <field name="stock_move_id" column_invisible="1" force_save="1"/>
+                                <field name="has_serial_lots" column_invisible="1"/>
+                                <field name="product_id" readonly="1" width="360px"/>
+                                <button name="action_open_serial_quality"
+                                        type="object"
+                                        icon="fa-barcode"
+                                        title="Seriennummern prüfen"
+                                        column_invisible="not parent.has_serial_lots"
+                                        invisible="not has_serial_lots"/>
+                                <!-- Serien/Q-Klasse wird nur angezeigt, wenn mindestens eine Position Seriennummern enthält. -->
+                                <field name="serial_quality_summary" readonly="1" width="240px" column_invisible="not parent.has_serial_lots"/>
+                                <field name="product_uom_qty" string="Erwartet" readonly="1" width="110px"/>
+                                <field name="rma_qty_a" string="A-Ware" width="100px" force_save="1" readonly="has_serial_lots"/>
+                                <field name="rma_qty_b" string="B-Ware" width="100px" force_save="1" readonly="has_serial_lots"/>
+                                <field name="rma_qty_c" string="C-Ware" width="100px" force_save="1" readonly="has_serial_lots"/>
+                                <field name="rma_qty_return" string="Umtausch" width="120px" force_save="1"/>
+                                <field name="rma_qty_refund" string="Rückerstattung" width="150px" force_save="1"/>
+                            </list>
+                        </field>
+                    </div>
+
+                    <!-- Anhänge werden beim Durchführen an RMA-Eingang und Folgebelege geschrieben. -->
+                    <group string="Prüf-Fotos / Anhänge" invisible="not rma_order_id">
+                        <field name="rma_attachment_ids"
+                               widget="many2many_binary"
+                               nolabel="1"
+                               readonly="processing_done"/>
+                    </group>
+                </sheet>
+                <!-- Absichtlich außerhalb des sheets: der Leitfaden steht neben dem Formular statt es zu verkleinern. -->
+                <div class="rma_management_guide" invisible="not rma_order_id">
+                    <h4>
+                        <i class="fa fa-clipboard-list me-2"/>Prüf-Leitfaden
+                    </h4>
+                    <img src="/rma_management/static/src/img/rma_pruefleitfaden_beispiel.png"
+                         alt="Prüf-Leitfaden für Retouren"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Modaldialog zur Q-Klassen-Zuordnung je Seriennummer. -->
+    <record id="view_rma_splitting_line_serial_quality_form" model="ir.ui.view">
+        <field name="name">rma.splitting.line.serial.quality.form</field>
+        <field name="model">rma.splitting.line</field>
+        <field name="arch" type="xml">
+            <form string="Seriennummern prüfen">
+                <sheet>
+                    <group>
+                        <field name="product_id" readonly="1"/>
+                        <field name="product_uom_qty" readonly="1"/>
+                    </group>
+                    <field name="serial_quality_line_ids" nolabel="1">
+                        <list editable="bottom" create="false" delete="false">
+                            <field name="lot_id" string="Seriennummer"/>
+                            <field name="quality_class" required="1"/>
+                        </list>
+                    </field>
+                </sheet>
+                <footer>
+                    <button name="action_apply_serial_quality"
+                            string="Übernehmen"
+                            type="object"
+                            class="oe_highlight"/>
+                    <button string="Abbrechen" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Zeigt die RMA-Q-Klasse auch in den Standard-Operationslisten der Lagerbewegung. -->
+    <record id="view_stock_move_line_operation_tree_inherit_rma_quality" model="ir.ui.view">
+        <field name="name">stock.move.line.operations.list.inherit.rma.quality</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_stock_move_line_operation_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='lot_id']" position="after">
+                <field name="rma_quality_class" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Dasselbe Feld in der detaillierten Operationsliste, damit beide Odoo-Ansichten konsistent sind. -->
+    <record id="view_stock_move_line_detailed_operation_tree_inherit_rma_quality" model="ir.ui.view">
+        <field name="name">stock.move.line.detailed.operations.list.inherit.rma.quality</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_stock_move_line_detailed_operation_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='lot_id']" position="after">
+                <field name="rma_quality_class" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

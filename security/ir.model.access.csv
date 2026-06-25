@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_rma_order_user,rma.order.user,model_rma_order,rma_management.group_rma_user,1,1,1,1
+access_rma_order_line_user,rma.order.line.user,model_rma_order_line,rma_management.group_rma_user,1,1,1,1
+access_rma_splitting_user,rma.splitting.user,model_rma_splitting,rma_management.group_rma_user,1,1,1,1
+access_rma_splitting_line_user,rma.splitting.line.user,model_rma_splitting_line,rma_management.group_rma_user,1,1,1,1
+access_rma_splitting_serial_line_user,rma.splitting.serial.line.user,model_rma_splitting_serial_line,rma_management.group_rma_user,1,1,1,1
+access_rma_deadline_confirmation_user,rma.deadline.confirmation.user,model_rma_deadline_confirmation,rma_management.group_rma_user,1,1,1,1
+access_rma_reason_user,rma.reason.user,model_rma_reason,rma_management.group_rma_user,1,0,0,0
+access_rma_reason_manager,rma.reason.manager,model_rma_reason,rma_management.group_rma_manager,1,1,1,0
+access_rma_audit_log_user,rma.audit.log.user,model_rma_audit_log,rma_management.group_rma_user,1,0,0,0
+access_rma_audit_log_manager,rma.audit.log.manager,model_rma_audit_log,rma_management.group_rma_manager,1,1,1,0

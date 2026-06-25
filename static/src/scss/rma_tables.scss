@@ -1,0 +1,82 @@
+// Tabellenlayout: breite Odoo-Listen dürfen scrollen, aber nicht aus dem Formular laufen.
+.rma_management_form {
+    .rma_management_table_section {
+        margin-top: 24px;
+        max-width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    .rma_management_line_table {
+        // Odoo setzt eigene Listenränder; für das RMA-Layout müssen sie bündig sein.
+        --ListRenderer-margin-x: 0;
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        width: 100%;
+
+        > div,
+        .o_field_x2many,
+        .o_field_x2many_list,
+        .o_list_renderer {
+            max-width: 100%;
+            min-width: 0;
+            width: 100%;
+        }
+
+        .o_list_renderer {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+
+        .o_list_table {
+            // Automatische Spaltenbreiten verhindern abgeschnittene RMA-Mengenspalten.
+            max-width: 100%;
+            min-width: 0;
+            table-layout: auto;
+            width: 100% !important;
+        }
+
+        th,
+        td {
+            vertical-align: middle;
+        }
+
+        th {
+            white-space: normal;
+        }
+
+        .o_data_cell {
+            overflow-wrap: anywhere;
+        }
+
+        .o_field_cell:not(.o_list_number) input {
+            min-width: 0;
+        }
+
+        .o_list_number input {
+            min-width: 0;
+            text-align: right;
+        }
+    }
+
+    .rma_management_split_table {
+        // Die Mengenprüfung hat mehr Spalten und braucht deshalb eine stabile Mindestbreite.
+        .o_list_table {
+            min-width: 1040px;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    // Auf kleinen Screens bleibt die Tabelle horizontal scrollbar.
+    .rma_management_form {
+        .rma_management_line_table {
+            .o_list_table {
+                min-width: 680px;
+            }
+        }
+    }
+}

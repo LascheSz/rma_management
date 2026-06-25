@@ -1,0 +1,154 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2200" height="1500" viewBox="0 0 2200 1500">
+  <defs>
+    <style>
+      .bg { fill: #f7f5f2; }
+      .box { fill: #ffffff; stroke: #2f2f2f; stroke-width: 3; }
+      .title { font: 700 28px 'Arial', sans-serif; fill: #1f1f1f; }
+      .text { font: 22px 'Arial', sans-serif; fill: #222222; }
+      .small { font: 20px 'Arial', sans-serif; fill: #333333; }
+      .line { stroke: #2f2f2f; stroke-width: 4; fill: none; }
+      .sep { stroke: #2f2f2f; stroke-width: 3; }
+      .label { font: 20px 'Arial', sans-serif; fill: #222222; }
+    </style>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L14,7 L0,14 z" fill="#2f2f2f"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="2200" height="1500"/>
+
+  <g transform="translate(60 60)">
+    <rect class="box" x="0" y="0" rx="24" ry="24" width="520" height="410"/>
+    <line class="sep" x1="0" y1="56" x2="520" y2="56"/>
+    <text class="title" x="260" y="38" text-anchor="middle">rma.order</text>
+    <text class="text" x="24" y="94">+ sale_order_id: Many2one(sale.order)</text>
+    <text class="text" x="24" y="126">+ partner_id: Many2one(res.partner) [related]</text>
+    <text class="text" x="24" y="158">+ return_deadline_days: Integer [related]</text>
+    <text class="text" x="24" y="190">+ return_deadline_date: Date</text>
+    <text class="text" x="24" y="222">+ return_days_remaining: Integer</text>
+    <text class="text" x="24" y="254">+ return_days_expired: Integer</text>
+    <text class="text" x="24" y="286">+ return_deadline_text: Char</text>
+    <text class="text" x="24" y="318">+ line_ids: One2many(rma.order.line)</text>
+    <line class="sep" x1="0" y1="344" x2="520" y2="344"/>
+    <text class="small" x="24" y="380">+ _compute_return_deadline_information()</text>
+    <text class="small" x="24" y="408">+ _is_return_deadline_expired()</text>
+    <text class="small" x="24" y="436">+ _open_return_deadline_confirmation()</text>
+    <text class="small" x="24" y="464">+ _create_return_picking_record()</text>
+  </g>
+
+  <g transform="translate(730 60)">
+    <rect class="box" x="0" y="0" rx="24" ry="24" width="440" height="210"/>
+    <line class="sep" x1="0" y1="56" x2="440" y2="56"/>
+    <text class="title" x="220" y="38" text-anchor="middle">sale.order</text>
+    <text class="text" x="24" y="96">+ _name_search()</text>
+    <line class="sep" x1="0" y1="126" x2="440" y2="126"/>
+    <text class="small" x="24" y="164">+ invoice number search</text>
+  </g>
+
+  <g transform="translate(730 340)">
+    <rect class="box" x="0" y="0" rx="24" ry="24" width="470" height="260"/>
+    <line class="sep" x1="0" y1="56" x2="470" y2="56"/>
+    <text class="title" x="235" y="38" text-anchor="middle">rma.order.line</text>
+    <text class="text" x="24" y="96">+ return_qty: Float</text>
+    <text class="text" x="24" y="128">+ returned_qty: Float</text>
+    <line class="sep" x1="0" y1="158" x2="470" y2="158"/>
+    <text class="small" x="24" y="196">+ _validate_return_quantity()</text>
+    <text class="small" x="24" y="226">+ available_qty: Float</text>
+  </g>
+
+  <g transform="translate(1340 90)">
+    <rect class="box" x="0" y="0" rx="24" ry="24" width="420" height="160"/>
+    <line class="sep" x1="0" y1="56" x2="420" y2="56"/>
+    <text class="title" x="210" y="38" text-anchor="middle">res.partner</text>
+    <text class="text" x="24" y="98">+ rma_return_deadline_days: Integer</text>
+  </g>
+
+  <g transform="translate(60 560)">
+    <rect class="box" x="0" y="0" rx="24" ry="24" width="520" height="250"/>
+    <line class="sep" x1="0" y1="56" x2="520" y2="56"/>
+    <text class="title" x="260" y="38" text-anchor="middle">rma.deadline.confirmation</text>
+    <text class="text" x="24" y="96">+ rma_id: Many2one(rma.order)</text>
+    <text class="text" x="24" y="128">+ days_expired: Integer</text>
+    <text class="text" x="24" y="160">+ message_text: Text</text>
+    <line class="sep" x1="0" y1="188" x2="520" y2="188"/>
+    <text class="small" x="24" y="222">+ _compute_message_text()</text>
+    <text class="small" x="24" y="250">+ action_confirm_create_rma()</text>
+    <text class="small" x="24" y="278">+ action_cancel_create_rma()</text>
+  </g>
+
+  <g transform="translate(60 930)">
+    <rect class="box" x="0" y="0" rx="24" ry="24" width="620" height="380"/>
+    <line class="sep" x1="0" y1="56" x2="620" y2="56"/>
+    <text class="title" x="310" y="38" text-anchor="middle">rma.splitting</text>
+    <text class="text" x="24" y="94">+ rma_order_id: Many2one(stock.picking)</text>
+    <text class="text" x="24" y="126">+ line_ids: One2many(rma.splitting.line)</text>
+    <text class="text" x="24" y="158">+ partner_id: Many2one(res.partner) [related]</text>
+    <text class="text" x="24" y="190">+ origin: Char [related]</text>
+    <text class="text" x="24" y="222">+ processing_done: Boolean [related]</text>
+    <line class="sep" x1="0" y1="250" x2="620" y2="250"/>
+    <text class="small" x="24" y="286">+ _validate_rma_and_quantities()</text>
+    <text class="small" x="24" y="316">+ _create_follow_up_pickings()</text>
+    <text class="small" x="24" y="346">+ _prepare_exchange()</text>
+    <text class="small" x="24" y="376">+ _prepare_refund()</text>
+    <text class="small" x="24" y="406">+ _write_note_and_mark_done()</text>
+    <text class="small" x="24" y="436">+ _complete_rma_receipt()</text>
+    <text class="small" x="24" y="466">+ action_execute_split()</text>
+  </g>
+
+  <g transform="translate(900 900)">
+    <rect class="box" x="0" y="0" rx="24" ry="24" width="460" height="220"/>
+    <line class="sep" x1="0" y1="56" x2="460" y2="56"/>
+    <text class="title" x="230" y="38" text-anchor="middle">stock.picking</text>
+    <text class="text" x="24" y="96">+ rma_split_done: Boolean</text>
+    <text class="text" x="24" y="128">+ rma_exchange_prepared: Boolean</text>
+    <text class="text" x="24" y="160">+ rma_refund_prepared: Boolean</text>
+    <text class="text" x="24" y="192">+ rma_processing_done: Boolean</text>
+  </g>
+
+  <g transform="translate(1520 880)">
+    <rect class="box" x="0" y="0" rx="24" ry="24" width="430" height="250"/>
+    <line class="sep" x1="0" y1="56" x2="430" y2="56"/>
+    <text class="title" x="215" y="38" text-anchor="middle">rma.splitting.line</text>
+    <text class="text" x="24" y="94">+ rma_qty_a: Float</text>
+    <text class="text" x="24" y="126">+ rma_qty_b: Float</text>
+    <text class="text" x="24" y="158">+ rma_qty_c: Float</text>
+    <text class="text" x="24" y="190">+ rma_qty_return: Float</text>
+    <text class="text" x="24" y="222">+ rma_qty_refund: Float</text>
+  </g>
+
+  <path class="line" marker-end="url(#arrow)" d="M580 190 C650 190, 650 170, 730 165"/>
+  <text class="label" x="640" y="150">* : 1</text>
+
+  <path class="line" marker-end="url(#arrow)" d="M580 260 C930 260, 1030 170, 1340 170"/>
+  <text class="label" x="980" y="210">* : 1</text>
+
+  <path class="line" marker-end="url(#arrow)" d="M580 330 C650 360, 670 420, 730 455"/>
+  <text class="label" x="620" y="395">1 : *</text>
+
+  <path class="line" marker-end="url(#arrow)" d="M320 470 C320 510, 320 520, 320 560"/>
+  <text class="label" x="340" y="530">1 : *</text>
+
+  <path class="line" marker-end="url(#arrow)" d="M1170 165 C1240 165, 1270 170, 1340 170"/>
+  <text class="label" x="1230" y="145">* : 1</text>
+
+  <path class="line" marker-end="url(#arrow)" d="M950 270 C950 300, 950 310, 950 340"/>
+  <text class="label" x="970" y="315">1 : *</text>
+
+  <path class="line" marker-end="url(#arrow)" d="M680 1120 C770 1080, 810 1020, 900 1010"/>
+  <text class="label" x="775" y="1050">* : 1</text>
+
+  <path class="line" marker-end="url(#arrow)" d="M680 1080 C920 1040, 1080 880, 1340 250"/>
+  <text class="label" x="1010" y="770">* : 1</text>
+
+  <path class="line" marker-end="url(#arrow)" d="M680 1180 C930 1160, 1190 1120, 1520 1005"/>
+  <text class="label" x="1100" y="1145">1 : *</text>
+
+  <path class="line" marker-end="url(#arrow)" d="M1360 1010 C1430 1010, 1460 1010, 1520 1005"/>
+  <text class="label" x="1435" y="985">1 : *</text>
+
+  <path class="line" marker-end="url(#arrow)" d="M580 390 C760 500, 820 760, 900 900"/>
+  <text class="label" x="760" y="670">creates RMA-Eingang</text>
+
+  <path class="line" marker-end="url(#arrow)" d="M680 1010 C760 980, 800 980, 900 980"/>
+  <text class="label" x="740" y="955">creates Folgebelege</text>
+</svg>

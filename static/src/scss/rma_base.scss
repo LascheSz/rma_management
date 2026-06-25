@@ -1,0 +1,8 @@
+// Grundlayout: RMA-Formulare sollen die verfügbare Backend-Breite nutzen.
+.rma_management_form {
+    .o_form_sheet {
+        box-sizing: border-box;
+        max-width: none;
+        width: 100%;
+    }
+}

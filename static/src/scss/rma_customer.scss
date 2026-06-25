@@ -1,0 +1,54 @@
+// Kundendatenbereich: Bild und Stammdaten bleiben nebeneinander, ohne Tabellen zu verdrängen.
+.rma_management_form {
+    .rma_management_customer_group {
+        align-items: flex-start;
+        column-gap: 48px;
+        justify-content: flex-start;
+        margin-left: 0;
+        margin-right: 0;
+        row-gap: 16px;
+        width: 100%;
+
+        > .o_inner_group,
+        .o_group,
+        .o_inner_group {
+            min-width: 0;
+        }
+
+        > .o_inner_group:not(.rma_management_customer_image) {
+            flex: 1 1 320px;
+            max-width: 520px;
+            width: auto;
+        }
+
+        .rma_management_customer_image {
+            // Das Kundenbild bekommt eine feste Spalte, damit Textspalten nicht springen.
+            flex: 0 0 132px;
+            justify-items: start;
+            max-width: 132px;
+            min-width: 132px;
+            width: 132px;
+
+            .o_field_image,
+            img {
+                max-height: 96px;
+                max-width: 96px;
+            }
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    // Mobil wird das Bild über die volle Breite gelegt, damit die Textgruppen lesbar bleiben.
+    .rma_management_form {
+        .rma_management_customer_group {
+            .rma_management_customer_image {
+                flex: 1 1 100%;
+                justify-items: start;
+                max-width: none;
+                min-width: 0;
+                width: auto;
+            }
+        }
+    }
+}

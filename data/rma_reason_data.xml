@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <!-- Startwerte für Rückgabegründe; Benutzer können sie später in den Einstellungen ändern. -->
+    <record id="rma_reason_defect" model="rma.reason">
+        <field name="name">Defekt</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="rma_reason_wrong_order" model="rma.reason">
+        <field name="name">Falsch bestellt</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="rma_reason_transport_damage" model="rma.reason">
+        <field name="name">Transportschaden</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="rma_reason_goodwill" model="rma.reason">
+        <field name="name">Kulanz</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="rma_reason_warranty" model="rma.reason">
+        <field name="name">Garantie</field>
+        <field name="sequence">50</field>
+    </record>
+</odoo>

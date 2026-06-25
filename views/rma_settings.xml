@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- RMA-Einstellungen werden im Lager-Konfigurationsbereich ergänzt. -->
+    <record id="res_config_settings_view_form_inherit_rma_management" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.rma.management</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='warehouse_setting_container']" position="after">
+                <block title="RMA Management" name="rma_management_setting_container">
+                    <!-- Standardwert für neue Kunden; bestehende Kunden können individuell abweichen. -->
+                    <setting id="rma_default_return_deadline_days"
+                             string="RMA Rückgabefrist"
+                             help="Standardfrist für neue Kunden, wenn dort keine individuelle Frist gepflegt ist.">
+                        <div class="content-group">
+                            <field name="rma_default_return_deadline_days" class="oe_inline"/>
+                            <span class="ms-2">Tage</span>
+                        </div>
+                    </setting>
+                    <!-- Lagerorte können manuell gesetzt werden, sonst erzeugt das Modul Defaults. -->
+                    <setting id="rma_locations"
+                             string="RMA Lagerorte"
+                             help="Lagerorte für RMA-Eingang, B-Ware und C-Ware. Ohne Auswahl nutzt das Modul die automatisch angelegten Standardlager.">
+                        <div class="content-group">
+                            <div class="mt8">
+                                <label for="rma_location_id" class="o_light_label"/>
+                                <field name="rma_location_id" options="{'no_create': False}"/>
+                            </div>
+                            <div class="mt8">
+                                <label for="rma_b_location_id" class="o_light_label"/>
+                                <field name="rma_b_location_id" options="{'no_create': False}"/>
+                            </div>
+                            <div class="mt8">
+                                <label for="rma_c_location_id" class="o_light_label"/>
+                                <field name="rma_c_location_id" options="{'no_create': False}"/>
+                            </div>
+                        </div>
+                    </setting>
+                    <!-- Vorgangsarten sind konfigurierbar, damit Kunden andere Lagerflüsse nutzen können. -->
+                    <setting id="rma_picking_types"
+                             string="RMA Vorgangsarten"
+                             help="Vorgangsarten für Eingang und spätere A/B/C-Warenbewegungen. Ohne Auswahl nutzt das Modul die automatisch angelegten Vorgangsarten.">
+                        <div class="content-group">
+                            <div class="mt8">
+                                <label for="rma_incoming_picking_type_id" class="o_light_label"/>
+                                <field name="rma_incoming_picking_type_id" options="{'no_create': False}"/>
+                            </div>
+                            <div class="mt8">
+                                <label for="rma_a_picking_type_id" class="o_light_label"/>
+                                <field name="rma_a_picking_type_id" options="{'no_create': False}"/>
+                            </div>
+                            <div class="mt8">
+                                <label for="rma_b_picking_type_id" class="o_light_label"/>
+                                <field name="rma_b_picking_type_id" options="{'no_create': False}"/>
+                            </div>
+                            <div class="mt8">
+                                <label for="rma_c_picking_type_id" class="o_light_label"/>
+                                <field name="rma_c_picking_type_id" options="{'no_create': False}"/>
+                            </div>
+                        </div>
+                    </setting>
+                    <!-- Rückgabegründe sind Stammdaten und nicht fest im Code verdrahtet. -->
+                    <setting id="rma_reasons"
+                             string="RMA Rückgabegründe"
+                             help="Diese Gründe sind im RMA-Erstellungswizard auswählbar. Entfernte Gründe werden archiviert und können später wieder aktiviert werden.">
+                        <field name="rma_reason_ids"
+                               widget="many2many_tags"
+                               options="{'no_create_edit': False}"/>
+                    </setting>
+                    <!-- Für reine Mengenware kann der gesamte Seriennummernprozess ausgeschaltet werden. -->
+                    <setting id="rma_serial_numbers"
+                             string="RMA Seriennummern"
+                             help="Aktiviert die Seriennummern-Auswahl in der RMA-Erstellung und die Q-Klassen-Zuordnung je Seriennummer in der Mengenprüfung.">
+                        <field name="rma_use_serial_numbers"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>
