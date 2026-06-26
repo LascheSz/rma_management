@@ -438,13 +438,21 @@ class RmaOrderLine(models.TransientModel):
         scanned = self.barcode_scan_line.strip()
         self.barcode_scan_line = False
 
-        lot = self.env['stock.lot'].search([('name', '=', scanned)], limit=1)
+        lot = self.env['stock.lot'].search([
+            ('name', '=', scanned),
+            ('product_id', '=', self.product_id.id),
+        ], limit=1)
+        if not lot:
+            # Fallback ohne Produktfilter falls SN-Name eindeutig ist
+            lot = self.env['stock.lot'].search([('name', '=', scanned)], limit=1)
         if not lot:
             return {'warning': {
                 'title': _('Nicht gefunden'),
                 'message': _('Seriennummer "%s" nicht gefunden.') % scanned,
             }}
-        if lot not in self.available_serial_lot_ids:
+
+        returnable = self._get_returnable_serial_lots()
+        if lot not in returnable:
             return {'warning': {
                 'title': _('Nicht verfügbar'),
                 'message': _('"%s" gehört nicht zu diesem Artikel oder wurde bereits retourniert.') % scanned,
