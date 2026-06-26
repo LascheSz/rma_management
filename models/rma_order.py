@@ -587,6 +587,32 @@ class SaleOrder(models.Model):
         string='Offene RMAs',
         compute='_compute_rma_count',
     )
+    rma_eligible = fields.Boolean(
+        string='RMA möglich',
+        compute='_compute_rma_eligible',
+    )
+
+    @api.depends('picking_ids.state', 'picking_ids.picking_type_code')
+    def _compute_rma_eligible(self):
+        """True sobald mindestens eine Auslieferung abgeschlossen ist."""
+        for order in self:
+            order.rma_eligible = any(
+                p.state == 'done' and p.picking_type_code == 'outgoing'
+                for p in order.picking_ids
+            )
+
+    def action_create_rma(self):
+        """Öffnet den RMA-Erstellungswizard mit vorausgefülltem Verkaufsauftrag."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('RMA erstellen'),
+            'res_model': 'rma.order',
+            'view_mode': 'form',
+            'view_id': self.env.ref('rma_management.view_rma_management_form').id,
+            'target': 'current',
+            'context': {'default_sale_order_id': self.id},
+        }
 
     @api.depends('picking_ids.rma_is_receipt', 'picking_ids.rma_status')
     def _compute_rma_count(self):
