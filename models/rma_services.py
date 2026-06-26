@@ -1,6 +1,6 @@
 import logging
 
-from odoo import _, api, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
@@ -244,6 +244,11 @@ class RmaSplittingService(models.AbstractModel):
             'rma_qty_b': stock_configuration._get_picking_type('b_goods'),
             'rma_qty_c': stock_configuration._get_picking_type('scrap'),
         }
+        destination_location_by_field = {
+            'rma_qty_a': stock_configuration._get_warehouse_receipt_type().default_location_dest_id,
+            'rma_qty_b': stock_configuration._get_location('b_goods'),
+            'rma_qty_c': stock_configuration._get_location('scrap'),
+        }
         section_title_by_field = {
             'rma_qty_a': _('A-Ware'),
             'rma_qty_b': _('B-Ware'),
@@ -264,6 +269,7 @@ class RmaSplittingService(models.AbstractModel):
                 continue
 
             picking_type = picking_type_by_field[field_name]
+            destination_location = destination_location_by_field[field_name]
             serial_moves = []
 
             # Jeder Qualitätsbereich erhält einen eigenen Zielbeleg, damit Lager,
@@ -273,7 +279,7 @@ class RmaSplittingService(models.AbstractModel):
                 'partner_id': wizard.partner_id.id,
                 'origin': f"{wizard.rma_order_id.name} - {section_title}",
                 'location_id': wizard.rma_order_id.location_dest_id.id,
-                'location_dest_id': picking_type.default_location_dest_id.id,
+                'location_dest_id': destination_location.id,
                 'rma_reason_id': wizard.rma_order_id.rma_reason_id.id,
                 'rma_sale_order_id': wizard.rma_order_id.rma_sale_order_id.id,
             })
@@ -288,7 +294,7 @@ class RmaSplittingService(models.AbstractModel):
                     'picking_id': new_picking.id,
                     'partner_id': wizard.partner_id.id,
                     'location_id': new_picking.location_id.id,
-                    'location_dest_id': new_picking.location_dest_id.id,
+                    'location_dest_id': destination_location.id,
                     'description_picking': move.description_picking or move.product_id.display_name,
                     'origin': wizard.rma_order_id.name,
                 })
@@ -462,10 +468,11 @@ class RmaSplittingService(models.AbstractModel):
         try:
             with self.env.cr.savepoint():
                 self._validate_rma_and_quantities(wizard)
+                self._complete_rma_receipt(wizard)
                 created_pickings = self._create_follow_up_pickings(wizard)
                 self._attach_inspection_files(wizard, created_pickings)
                 self._write_note_and_mark_done(wizard)
-                self._complete_rma_receipt(wizard)
+                self._create_analytics_records(wizard)
                 self._get_audit_log().log_event(
                     'split_completed',
                     _('Mengenprüfung für %(picking)s abgeschlossen') % {
@@ -512,6 +519,28 @@ class RmaSplittingService(models.AbstractModel):
                 'pickings': ', '.join(created_pickings.mapped('name')),
             })
         return '\n'.join(detail_lines)
+
+    def _create_analytics_records(self, wizard):
+        """Speichert A/B/C-Mengen je Artikel dauerhaft für spätere Auswertungen."""
+        today = fields.Date.context_today(self)
+        analytics_model = self.env['rma.analytics']
+        for line in wizard.line_ids:
+            if not (line.rma_qty_a or line.rma_qty_b or line.rma_qty_c
+                    or line.rma_qty_return or line.rma_qty_refund):
+                continue
+            analytics_model.create({
+                'picking_id': wizard.rma_order_id.id,
+                'partner_id': wizard.partner_id.id,
+                'rma_reason_id': wizard.rma_order_id.rma_reason_id.id,
+                'product_id': line.product_id.id,
+                'split_date': today,
+                'user_id': self.env.user.id,
+                'qty_a': line.rma_qty_a,
+                'qty_b': line.rma_qty_b,
+                'qty_c': line.rma_qty_c,
+                'qty_return': line.rma_qty_return,
+                'qty_refund': line.rma_qty_refund,
+            })
 
     def _attach_inspection_files(self, wizard, created_pickings):
         """Hängt Prüf-Fotos an RMA-Eingang und Folgebelege an."""

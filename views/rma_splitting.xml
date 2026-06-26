@@ -34,13 +34,20 @@
                         Dieser RMA-Eingang wurde bereits vollständig durchgeführt und ist gesperrt.
                     </div>
                     <group string="Auftragsreferenz">
-                        <!-- Der unsichtbare Eingangstyp begrenzt die Auswahl auf echte RMA-Eingänge. -->
                         <field name="rma_incoming_picking_type_id" invisible="1"/>
                         <field name="rma_order_id"
                                domain="[('picking_type_id', '=', rma_incoming_picking_type_id)]"
                                options="{'no_create': True, 'no_open': True}" />
                         <field name="rma_reason_id" readonly="1"/>
                         <field name="has_serial_lots" invisible="1"/>
+                    </group>
+
+                    <group string="🔢 Barcode-Scanner" invisible="not has_serial_lots or not rma_order_id">
+                        <field name="barcode_quality_class" string="Q-Klasse" placeholder="1. Q-Klasse wählen …"/>
+                        <field name="barcode_scan"
+                               string="Seriennummer"
+                               placeholder="2. Scannen oder eingeben + Enter …"
+                               invisible="not barcode_quality_class"/>
                     </group>
 
                     <group string="Kunden- und Adressinformationen" invisible="not rma_order_id" col="3" class="rma_management_customer_group">

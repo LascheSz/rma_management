@@ -109,6 +109,16 @@ class RmaSplitting(models.TransientModel):
         string='Hat Seriennummern',
         compute='_compute_has_serial_lots',
     )
+    barcode_quality_class = fields.Selection(
+        [('a', 'A-Ware'), ('b', 'B-Ware'), ('c', 'C-Ware')],
+        string='Q-Klasse für Scan',
+        store=False,
+    )
+    barcode_scan = fields.Char(
+        string='Seriennummer scannen',
+        store=False,
+        help='Q-Klasse wählen, dann Barcode scannen — Zuweisung erfolgt sofort.',
+    )
     rma_attachment_ids = fields.Many2many(
         'ir.attachment',
         string='Prüf-Fotos / Anhänge',
@@ -128,6 +138,40 @@ class RmaSplitting(models.TransientModel):
     origin = fields.Char(related='rma_order_id.origin', string='Referenz', readonly=True)
     rma_reason_id = fields.Many2one(related='rma_order_id.rma_reason_id', string='RMA-Grund', readonly=True)
     processing_done = fields.Boolean(related='rma_order_id.rma_processing_done', readonly=True)
+
+    @api.onchange('barcode_scan')
+    def _onchange_barcode_scan(self):
+        """Weist einer Seriennummer direkt im Hauptformular die Q-Klasse zu — kein Dialog nötig."""
+        if not self.barcode_scan:
+            return
+        scanned = self.barcode_scan.strip()
+        self.barcode_scan = False
+
+        if not self.barcode_quality_class:
+            return {'warning': {
+                'title': _('Q-Klasse fehlt'),
+                'message': _('Bitte zuerst eine Q-Klasse (A / B / C) auswählen, dann scannen.'),
+            }}
+
+        for line in self.line_ids:
+            matching = line.serial_quality_line_ids.filtered(
+                lambda sl: sl.lot_id.name == scanned
+            )
+            if matching:
+                if matching.quality_class:
+                    return {'warning': {
+                        'title': _('Bereits zugewiesen'),
+                        'message': _('"%s" hat bereits Q-Klasse %s.') % (
+                            scanned, dict(matching._fields['quality_class'].selection).get(matching.quality_class)
+                        ),
+                    }}
+                matching.quality_class = self.barcode_quality_class
+                return
+
+        return {'warning': {
+            'title': _('Seriennummer nicht gefunden'),
+            'message': _('"%s" ist in keiner Position dieses RMA-Eingangs.') % scanned,
+        }}
 
     @api.depends('line_ids.has_serial_lots')
     def _compute_has_serial_lots(self):
@@ -347,6 +391,7 @@ class RmaSplittingLine(models.TransientModel):
             obsolete_lines = line.serial_quality_line_ids.filtered(lambda serial_line: serial_line.lot_id not in serial_lots)
             obsolete_lines.unlink()
 
+    @api.onchange('barcode_scan')
     def action_open_serial_quality(self):
         """Öffnet die Q-Klassen-Erfassung für Seriennummern einer Prüfposition."""
         self.ensure_one()

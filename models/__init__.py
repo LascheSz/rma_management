@@ -1,4 +1,5 @@
 from . import rma_stock_config
+from . import rma_analytics
 from . import rma_reason
 from . import rma_audit
 from . import rma_settings

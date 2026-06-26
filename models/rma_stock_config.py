@@ -42,18 +42,21 @@ class RmaStockConfiguration(models.AbstractModel):
             'name': 'RMA-Eingang',
             'code': 'incoming',
             'sequence_code': 'RMA/%(range_year)s/%(month)s/',
+            'auto_print_return_slip': False,
         },
         'b_goods': {
             'xml_id': 'rma_management.picking_type_rma_b_goods',
             'name': 'RMA-Prüflager B-Ware',
             'code': 'internal',
             'sequence_code': 'RMA/PRUEF/',
+            'auto_print_return_slip': False,
         },
         'scrap': {
             'xml_id': 'rma_management.picking_type_rma_scrap',
             'name': 'RMA Schrottlager C-Ware',
             'code': 'internal',
             'sequence_code': 'RMA/SCHROTT/',
+            'auto_print_return_slip': False,
         },
     }
 
@@ -179,6 +182,7 @@ class RmaStockConfiguration(models.AbstractModel):
             'default_location_dest_id': destination_location.id,
             'active': True,
             'reservation_method': 'at_confirm',
+            'auto_print_return_slip': spec.get('auto_print_return_slip', False),
         }
 
         if picking_type:
@@ -244,3 +248,9 @@ class RmaStockConfiguration(models.AbstractModel):
             return configured_picking_type
         warehouse = self._get_warehouse()
         return warehouse.in_type_id or self.env.ref('stock.picking_type_in')
+
+    @api.model
+    def _get_internal_transfer_type(self):
+        """Gibt den normalen internen Umbuchungstyp des Hauptlagers zurück."""
+        warehouse = self._get_warehouse()
+        return warehouse.int_type_id or self.env.ref('stock.picking_type_internal')

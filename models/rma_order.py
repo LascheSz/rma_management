@@ -50,6 +50,11 @@ class RmaOrder(models.TransientModel):
         string='Hat Seriennummern',
         compute='_compute_has_serial_lots',
     )
+    barcode_scan = fields.Char(
+        string='Seriennummer scannen',
+        store=False,
+        help='Barcode scannen oder Seriennummer eingeben und Enter drücken.',
+    )
     rma_reason_id = fields.Many2one(
         'rma.reason',
         string='RMA-Grund',
@@ -92,6 +97,37 @@ class RmaOrder(models.TransientModel):
         compute='_compute_return_deadline_information',
         readonly=True,
     )
+
+    @api.onchange('barcode_scan')
+    def _onchange_barcode_scan(self):
+        """Scan einer Seriennummer fügt diese automatisch der richtigen Position hinzu."""
+        if not self.barcode_scan:
+            return
+        scanned = self.barcode_scan.strip()
+        self.barcode_scan = False
+
+        lot = self.env['stock.lot'].search([('name', '=', scanned)], limit=1)
+        if not lot:
+            return {'warning': {
+                'title': _('Seriennummer nicht gefunden'),
+                'message': _('"%s" wurde in keiner Seriennummer gefunden.') % scanned,
+            }}
+
+        for line in self.line_ids:
+            # _get_returnable_serial_lots() direkt aufrufen, da available_serial_lot_ids
+            # im onchange-Kontext nicht zuverlässig befüllt ist.
+            if lot in line._get_returnable_serial_lots():
+                if lot in line.selected_serial_lot_ids:
+                    return {'warning': {
+                        'title': _('Bereits ausgewählt'),
+                        'message': _('"%s" ist bereits in der Auswahl.') % scanned,
+                    }}
+                line.selected_serial_lot_ids = [(4, lot.id)]
+                return
+        return {'warning': {
+            'title': _('Nicht zuordenbar'),
+            'message': _('"%s" gehört nicht zu den Lieferungen dieses Auftrags.') % scanned,
+        }}
 
     @api.onchange('sale_order_id')
     def _onchange_sale_order_id(self):

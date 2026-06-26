@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ─── Qualitätsauswertung: rma.analytics ─────────────────────────────── -->
+
+    <record id="view_rma_analytics_list" model="ir.ui.view">
+        <field name="name">rma.analytics.list</field>
+        <field name="model">rma.analytics</field>
+        <field name="arch" type="xml">
+            <list string="Qualitätsauswertung" create="false" edit="false" delete="false"
+                  decoration-success="qty_c == 0 and qty_b == 0"
+                  decoration-warning="qty_b > 0 and qty_c == 0"
+                  decoration-danger="qty_c > 0">
+                <field name="split_date"/>
+                <field name="partner_id"/>
+                <field name="rma_reason_id"/>
+                <field name="product_id"/>
+                <field name="qty_total" string="Gesamt" sum="∑ Gesamt"/>
+                <field name="qty_a" string="🟢 A-Ware" sum="∑ A-Ware"/>
+                <field name="qty_b" string="🟡 B-Ware" sum="∑ B-Ware"/>
+                <field name="qty_c" string="🔴 C-Ware" sum="∑ C-Ware"/>
+                <field name="qty_return" string="Umtausch" sum="∑ Umtausch" optional="show"/>
+                <field name="qty_refund" string="Rückerstattung" sum="∑ Rückerstattung" optional="show"/>
+                <field name="user_id" optional="show"/>
+                <field name="picking_id" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Gestapeltes Balkendiagramm: A/B/C-Mengen je Monat -->
+    <record id="view_rma_analytics_graph" model="ir.ui.view">
+        <field name="name">rma.analytics.graph</field>
+        <field name="model">rma.analytics</field>
+        <field name="arch" type="xml">
+            <graph string="A/B/C-Aufteilung" type="bar" stacked="1" order="DESC">
+                <field name="split_date" interval="month"/>
+                <field name="qty_a" type="measure" string="A-Ware"/>
+                <field name="qty_b" type="measure" string="B-Ware"/>
+                <field name="qty_c" type="measure" string="C-Ware"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Pivot: Rückgabegrund × Monat, Maßzahlen A/B/C/Gesamt -->
+    <record id="view_rma_analytics_pivot" model="ir.ui.view">
+        <field name="name">rma.analytics.pivot</field>
+        <field name="model">rma.analytics</field>
+        <field name="arch" type="xml">
+            <pivot string="Qualitäts-Pivot" display_quantity="1">
+                <field name="rma_reason_id" type="row"/>
+                <field name="split_date" interval="month" type="col"/>
+                <field name="qty_total" type="measure" string="Gesamt"/>
+                <field name="qty_a" type="measure" string="A-Ware"/>
+                <field name="qty_b" type="measure" string="B-Ware"/>
+                <field name="qty_c" type="measure" string="C-Ware"/>
+                <field name="qty_return" type="measure" string="Umtausch"/>
+                <field name="qty_refund" type="measure" string="Rückerstattung"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_rma_analytics_search" model="ir.ui.view">
+        <field name="name">rma.analytics.search</field>
+        <field name="model">rma.analytics</field>
+        <field name="arch" type="xml">
+            <search string="Qualitätsauswertung">
+                <field name="partner_id" string="Kunde"/>
+                <field name="product_id" string="Artikel"/>
+                <field name="rma_reason_id" string="Grund"/>
+                <field name="picking_id" string="RMA-Beleg"/>
+                <separator/>
+                <filter name="this_month" string="Diesen Monat"
+                        domain="[('split_date', '&gt;=', (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
+                <filter name="this_year" string="Dieses Jahr"
+                        domain="[('split_date', '&gt;=', (context_today() + relativedelta(month=1, day=1)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="has_b" string="Hat B-Ware" domain="[('qty_b', '&gt;', 0)]"/>
+                <filter name="has_c" string="Hat C-Ware" domain="[('qty_c', '&gt;', 0)]"/>
+                <filter name="has_return" string="Hat Umtausch" domain="[('qty_return', '&gt;', 0)]"/>
+                <separator/>
+                <filter name="group_month" string="Monat" context="{'group_by': 'split_date:month'}"/>
+                <filter name="group_quarter" string="Quartal" context="{'group_by': 'split_date:quarter'}"/>
+                <filter name="group_reason" string="Rückgabegrund" context="{'group_by': 'rma_reason_id'}"/>
+                <filter name="group_partner" string="Kunde" context="{'group_by': 'partner_id'}"/>
+                <filter name="group_product" string="Artikel" context="{'group_by': 'product_tmpl_id'}"/>
+                <filter name="group_user" string="Benutzer" context="{'group_by': 'user_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_rma_analytics" model="ir.actions.act_window">
+        <field name="name">Qualitätsauswertung</field>
+        <field name="res_model">rma.analytics</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="context">{'search_default_this_year': 1}</field>
+        <field name="search_view_id" ref="view_rma_analytics_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Noch keine Auswertungsdaten vorhanden.
+            </p>
+            <p>Auswertungen werden automatisch nach jeder Mengenprüfung gespeichert.</p>
+        </field>
+    </record>
+
+    <!-- ─── RMA-Übersicht: Graph + Pivot auf stock.picking ─────────────────── -->
+
+    <!-- Balkendiagramm: Anzahl RMA-Eingänge je Monat, gruppiert nach Status -->
+    <record id="view_rma_overview_graph" model="ir.ui.view">
+        <field name="name">stock.picking.rma.graph</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <graph string="RMA-Eingänge nach Monat" type="bar">
+                <field name="scheduled_date" interval="month" string="Monat"/>
+                <field name="rma_status" type="col" string="Status"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Pivot: Rückgabegrund × Monat, Anzahl RMA-Eingänge -->
+    <record id="view_rma_overview_pivot" model="ir.ui.view">
+        <field name="name">stock.picking.rma.pivot</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <pivot string="RMA-Übersicht Pivot">
+                <field name="rma_reason_id" type="row" string="Rückgabegrund"/>
+                <field name="scheduled_date" interval="month" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Aktualisierte Aktion: Übersicht jetzt mit Graph + Pivot -->
+    <record id="action_rma_status_overview" model="ir.actions.act_window">
+        <field name="name">RMA-Übersicht</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">kanban,list,graph,pivot,form</field>
+        <field name="domain">[('rma_is_receipt', '=', True)]</field>
+        <field name="context">{'search_default_group_by_rma_status': 1}</field>
+        <field name="search_view_id" ref="view_rma_status_overview_search"/>
+        <field name="views" eval="[
+            (ref('view_rma_status_overview_kanban'), 'kanban'),
+            (ref('view_rma_status_overview_list'), 'list'),
+            (ref('view_rma_overview_graph'), 'graph'),
+            (ref('view_rma_overview_pivot'), 'pivot'),
+            (False, 'form'),
+        ]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Noch keine RMA-Eingänge vorhanden.</p>
+        </field>
+    </record>
+
+    <!-- ─── Menüstruktur ────────────────────────────────────────────────────── -->
+
+    <menuitem id="menu_rma_auswertungen"
+              name="Auswertungen"
+              parent="menu_rma_management_root"
+              groups="rma_management.group_rma_user"
+              sequence="40"/>
+
+    <menuitem id="menu_rma_analytics"
+              name="Qualitätsauswertung"
+              parent="menu_rma_auswertungen"
+              action="action_rma_analytics"
+              groups="rma_management.group_rma_user"
+              sequence="10"/>
+
+    <menuitem id="menu_rma_overview_reporting"
+              name="RMA-Übersicht"
+              parent="menu_rma_auswertungen"
+              action="action_rma_status_overview"
+              groups="rma_management.group_rma_user"
+              sequence="20"/>
+</odoo>

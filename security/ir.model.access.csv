@@ -5,7 +5,10 @@ access_rma_splitting_user,rma.splitting.user,model_rma_splitting,rma_management.
 access_rma_splitting_line_user,rma.splitting.line.user,model_rma_splitting_line,rma_management.group_rma_user,1,1,1,1
 access_rma_splitting_serial_line_user,rma.splitting.serial.line.user,model_rma_splitting_serial_line,rma_management.group_rma_user,1,1,1,1
 access_rma_deadline_confirmation_user,rma.deadline.confirmation.user,model_rma_deadline_confirmation,rma_management.group_rma_user,1,1,1,1
+access_rma_reason_internal,rma.reason.internal,model_rma_reason,base.group_user,1,0,0,0
 access_rma_reason_user,rma.reason.user,model_rma_reason,rma_management.group_rma_user,1,0,0,0
 access_rma_reason_manager,rma.reason.manager,model_rma_reason,rma_management.group_rma_manager,1,1,1,0
 access_rma_audit_log_user,rma.audit.log.user,model_rma_audit_log,rma_management.group_rma_user,1,0,0,0
 access_rma_audit_log_manager,rma.audit.log.manager,model_rma_audit_log,rma_management.group_rma_manager,1,1,1,0
+access_rma_analytics_user,rma.analytics.user,model_rma_analytics,rma_management.group_rma_user,1,0,0,0
+access_rma_analytics_manager,rma.analytics.manager,model_rma_analytics,rma_management.group_rma_manager,1,1,1,1

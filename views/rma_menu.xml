@@ -59,6 +59,11 @@
                             <field name="rma_reason_id" options="{'no_create_edit': False}"/>
                             <field name="has_serial_lots" invisible="1"/>
                         </group>
+                        <group string="🔢 Barcode-Scanner" invisible="not has_serial_lots or not sale_order_id">
+                            <field name="barcode_scan"
+                                   placeholder="Seriennummer scannen oder eingeben + Enter …"
+                                   nolabel="1"/>
+                        </group>
                         <!-- Diese Daten dienen nur der schnellen Uebersicht des Kunden. -->
                         <group string="Kunden- und Adressinformationen" invisible="not sale_order_id" col="3" class="rma_management_customer_group">
                             <group class="rma_management_customer_image">
