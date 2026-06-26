@@ -389,6 +389,11 @@ class RmaOrderLine(models.TransientModel):
         compute='_compute_available_serial_lot_ids',
         string='Hat Seriennummern',
     )
+    barcode_scan_line = fields.Char(
+        string='Seriennummer scannen',
+        store=False,
+        help='Barcode scannen — Seriennummer wird sofort abgehakt.',
+    )
     selected_serial_count = fields.Integer(
         string='Anzahl Seriennummern',
         compute='_compute_selected_serial_count',
@@ -424,6 +429,32 @@ class RmaOrderLine(models.TransientModel):
         """Kleine Zählhilfe für die Listenansicht."""
         for line in self:
             line.selected_serial_count = len(line.selected_serial_lot_ids)
+
+    @api.onchange('barcode_scan_line')
+    def _onchange_barcode_scan_line(self):
+        """Scan im Seriennummern-Dialog hakt die SN sofort ab."""
+        if not self.barcode_scan_line:
+            return
+        scanned = self.barcode_scan_line.strip()
+        self.barcode_scan_line = False
+
+        lot = self.env['stock.lot'].search([('name', '=', scanned)], limit=1)
+        if not lot:
+            return {'warning': {
+                'title': _('Nicht gefunden'),
+                'message': _('Seriennummer "%s" nicht gefunden.') % scanned,
+            }}
+        if lot not in self.available_serial_lot_ids:
+            return {'warning': {
+                'title': _('Nicht verfügbar'),
+                'message': _('"%s" gehört nicht zu diesem Artikel oder wurde bereits retourniert.') % scanned,
+            }}
+        if lot in self.selected_serial_lot_ids:
+            return {'warning': {
+                'title': _('Bereits ausgewählt'),
+                'message': _('"%s" ist bereits abgehakt.') % scanned,
+            }}
+        self.selected_serial_lot_ids = [(4, lot.id)]
 
     @api.onchange('selected_serial_lot_ids')
     def _onchange_selected_serial_lot_ids(self):

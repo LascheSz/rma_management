@@ -200,6 +200,11 @@
                             <field name="return_qty" readonly="1"/>
                             <field name="available_serial_lot_ids" invisible="1"/>
                         </group>
+                        <group string="🔢 Barcode-Scanner">
+                            <field name="barcode_scan_line"
+                                   nolabel="1"
+                                   placeholder="Seriennummer scannen oder eingeben + Enter …"/>
+                        </group>
                         <separator string="Seriennummern aus dem Lieferbeleg"/>
                         <field name="selected_serial_lot_ids"
                                widget="many2many_checkboxes"
