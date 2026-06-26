@@ -575,9 +575,44 @@ class RmaOrderLine(models.TransientModel):
 
 
 class SaleOrder(models.Model):
-    """Erweitert die Auftragssuche um Rechnungsnummern für schnelleres Finden."""
+    """Erweitert Verkaufsaufträge um RMA-Zähler und Suchverbesserungen."""
 
     _inherit = 'sale.order'
+
+    rma_count = fields.Integer(
+        string='Anzahl RMAs',
+        compute='_compute_rma_count',
+    )
+    rma_open_count = fields.Integer(
+        string='Offene RMAs',
+        compute='_compute_rma_count',
+    )
+
+    @api.depends('picking_ids.rma_is_receipt', 'picking_ids.rma_status')
+    def _compute_rma_count(self):
+        for order in self:
+            rma_pickings = order.picking_ids.filtered('rma_is_receipt')
+            order.rma_count = len(rma_pickings)
+            order.rma_open_count = len(rma_pickings.filtered(
+                lambda p: p.rma_status == 'open'
+            ))
+
+    def action_view_rmas(self):
+        """Öffnet alle RMA-Eingänge des Verkaufsauftrags."""
+        self.ensure_one()
+        rma_ids = self.picking_ids.filtered('rma_is_receipt').ids
+        action = {
+            'type': 'ir.actions.act_window',
+            'name': _('RMA-Eingänge'),
+            'res_model': 'stock.picking',
+            'view_mode': 'list,form',
+            'domain': [('id', 'in', rma_ids)],
+            'context': {'default_rma_sale_order_id': self.id},
+        }
+        if len(rma_ids) == 1:
+            action['view_mode'] = 'form'
+            action['res_id'] = rma_ids[0]
+        return action
 
     @api.model
     def _name_search(self, name='', domain=None, operator='ilike', limit=100, order=None):

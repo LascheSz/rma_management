@@ -103,4 +103,31 @@
               action="action_rma_status_overview"
               groups="rma_management.group_rma_user"
               sequence="30"/>
+
+    <!-- Smart-Button auf dem Verkaufsauftrag -->
+    <record id="view_sale_order_form_inherit_rma_button" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.rma.button</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_rmas"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-undo"
+                        invisible="rma_count == 0"
+                        groups="rma_management.group_rma_user">
+                    <field name="rma_open_count" invisible="1"/>
+                    <div class="o_stat_info">
+                        <field name="rma_count" class="o_stat_value"/>
+                        <span class="o_stat_text" invisible="rma_open_count == 0">RMA</span>
+                        <span class="o_stat_text text-warning" invisible="rma_open_count == 0">
+                            (<field name="rma_open_count"/> offen)
+                        </span>
+                        <span class="o_stat_text" invisible="rma_open_count != 0">RMA</span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
 </odoo>
