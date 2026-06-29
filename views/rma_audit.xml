@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- Read-only Liste aller automatisch protokollierten RMA-Ereignisse. -->
     <record id="view_rma_audit_log_list" model="ir.ui.view">
         <field name="name">rma.audit.log.list</field>
         <field name="model">rma.audit.log</field>
         <field name="arch" type="xml">
             <list create="false" edit="false" delete="false">
                 <field name="create_date" string="Zeitpunkt"/>
-                <field name="action"/>
+                <field name="action" widget="badge"
+                       decoration-info="action == 'create'"
+                       decoration-warning="action == 'split'"
+                       decoration-success="action == 'done'"
+                       decoration-danger="action == 'cancel'"/>
                 <field name="name"/>
                 <field name="user_id"/>
                 <field name="partner_id"/>
@@ -17,23 +20,31 @@
         </field>
     </record>
 
-    <!-- Detailansicht fuer Audit-Texte und referenzierte Belege. -->
     <record id="view_rma_audit_log_form" model="ir.ui.view">
         <field name="name">rma.audit.log.form</field>
         <field name="model">rma.audit.log</field>
         <field name="arch" type="xml">
             <form create="false" edit="false" delete="false">
                 <sheet>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="fa fa-history fa-2x text-primary"/>
+                        <div>
+                            <h4 class="mb-0">Audit-Eintrag</h4>
+                            <small class="text-muted">Automatisch protokolliertes RMA-Ereignis</small>
+                        </div>
+                    </div>
                     <group>
-                        <field name="action"/>
-                        <field name="name"/>
-                        <field name="user_id"/>
-                        <field name="partner_id"/>
-                    </group>
-                    <group>
-                        <field name="sale_order_id"/>
-                        <field name="picking_id"/>
-                        <field name="generated_picking_ids" widget="many2many_tags"/>
+                        <group string="Ereignis">
+                            <field name="action"/>
+                            <field name="name"/>
+                            <field name="user_id"/>
+                            <field name="partner_id"/>
+                        </group>
+                        <group string="Belege">
+                            <field name="sale_order_id"/>
+                            <field name="picking_id"/>
+                            <field name="generated_picking_ids" widget="many2many_tags"/>
+                        </group>
                     </group>
                     <group string="Details">
                         <field name="details" nolabel="1"/>
@@ -43,7 +54,6 @@
         </field>
     </record>
 
-    <!-- Suche nach Aktion, Benutzer, Kunde und betroffenen Belegen. -->
     <record id="view_rma_audit_log_search" model="ir.ui.view">
         <field name="name">rma.audit.log.search</field>
         <field name="model">rma.audit.log</field>
@@ -59,15 +69,17 @@
         </field>
     </record>
 
-    <!-- Separate Audit-Aktion, zusätzlich zu den Chatter-Einträgen am Beleg. -->
     <record id="action_rma_audit_log" model="ir.actions.act_window">
         <field name="name">Audit-Log</field>
         <field name="res_model">rma.audit.log</field>
         <field name="view_mode">list,form</field>
         <field name="context">{'search_default_group_by_action': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Noch keine Audit-Einträge vorhanden.</p>
+            <p>Alle RMA-Ereignisse werden hier automatisch protokolliert.</p>
+        </field>
     </record>
 
-    <!-- Audit ist im RMA-Menü sichtbar, aber unveränderlich. -->
     <menuitem id="menu_rma_audit_log"
               name="Audit-Log"
               parent="menu_rma_management_root"

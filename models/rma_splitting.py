@@ -74,7 +74,7 @@ class RmaSplitting(models.TransientModel):
         if not picking:
             return
 
-        selectable_moves = picking.move_ids.filtered(lambda move: move.state != 'cancel')
+        selectable_moves = picking.move_ids.filtered_domain([('state', '!=', 'cancel')])
         move_index = 0
 
         for command in line_commands:
@@ -108,6 +108,11 @@ class RmaSplitting(models.TransientModel):
     has_serial_lots = fields.Boolean(
         string='Hat Seriennummern',
         compute='_compute_has_serial_lots',
+    )
+    barcode_active = fields.Boolean(
+        string='Barcode-Scanner aktivieren',
+        default=False,
+        store=False,
     )
     barcode_quality_class = fields.Selection(
         [('a', 'A-Ware'), ('b', 'B-Ware'), ('c', 'C-Ware')],
@@ -154,9 +159,7 @@ class RmaSplitting(models.TransientModel):
             }}
 
         for line in self.line_ids:
-            matching = line.serial_quality_line_ids.filtered(
-                lambda sl: sl.lot_id.name == scanned
-            )
+            matching = line.serial_quality_line_ids.filtered_domain([('lot_id.name', '=', scanned)])
             if matching:
                 if matching.quality_class:
                     return {'warning': {
@@ -198,7 +201,7 @@ class RmaSplitting(models.TransientModel):
         if not self.rma_order_id:
             return commands
 
-        for move in self.rma_order_id.move_ids.filtered(lambda stock_move: stock_move.state != 'cancel'):
+        for move in self.rma_order_id.move_ids.filtered_domain([('state', '!=', 'cancel')]):
             commands.append((0, 0, {
                 'stock_move_id': move.id,
             }))
@@ -388,7 +391,7 @@ class RmaSplittingLine(models.TransientModel):
                     'splitting_line_id': line.id,
                     'lot_id': serial_lot.id,
                 })
-            obsolete_lines = line.serial_quality_line_ids.filtered(lambda serial_line: serial_line.lot_id not in serial_lots)
+            obsolete_lines = line.serial_quality_line_ids.filtered_domain([('lot_id', 'not in', serial_lots.ids)])
             obsolete_lines.unlink()
 
     @api.onchange('barcode_scan')
@@ -421,7 +424,7 @@ class RmaSplittingLine(models.TransientModel):
         if not self.serial_quality_line_ids:
             return
 
-        missing_serials = self.serial_quality_line_ids.filtered(lambda serial_line: not serial_line.quality_class)
+        missing_serials = self.serial_quality_line_ids.filtered_domain([('quality_class', '=', False)])
         if missing_serials:
             raise ValidationError(_(
                 "Bitte ordne jeder Seriennummer eine Qualitätsklasse zu.\n\n"
@@ -431,9 +434,9 @@ class RmaSplittingLine(models.TransientModel):
             })
 
         self.write({
-            'rma_qty_a': len(self.serial_quality_line_ids.filtered(lambda serial_line: serial_line.quality_class == 'a')),
-            'rma_qty_b': len(self.serial_quality_line_ids.filtered(lambda serial_line: serial_line.quality_class == 'b')),
-            'rma_qty_c': len(self.serial_quality_line_ids.filtered(lambda serial_line: serial_line.quality_class == 'c')),
+            'rma_qty_a': len(self.serial_quality_line_ids.filtered_domain([('quality_class', '=', 'a')])),
+            'rma_qty_b': len(self.serial_quality_line_ids.filtered_domain([('quality_class', '=', 'b')])),
+            'rma_qty_c': len(self.serial_quality_line_ids.filtered_domain([('quality_class', '=', 'c')])),
         })
 
     def _is_rma_serial_tracking_enabled(self):
@@ -550,11 +553,32 @@ class StockPicking(models.Model):
         string='Hat RMA-Seriennummern',
         compute='_compute_rma_has_serial_lots',
     )
+    rma_repair_count = fields.Integer(
+        string='Reparaturen',
+        compute='_compute_rma_repair_count',
+    )
     rma_receipt_created = fields.Boolean(string='RMA-Eingang erstellt', default=False)
     rma_split_done = fields.Boolean(string='RMA Mengenpruefung durchgeführt', default=False)
     rma_exchange_prepared = fields.Boolean(string='Umtausch vorbereitet', default=False)
     rma_refund_prepared = fields.Boolean(string='Rueckerstattung vorbereitet', default=False)
     rma_processing_done = fields.Boolean(string='RMA vollstaendig verarbeitet', default=False)
+
+    def _compute_rma_repair_count(self):
+        for picking in self:
+            picking.rma_repair_count = self.env['repair.order'].search_count([
+                ('picking_id', '=', picking.id),
+            ])
+
+    def action_view_rma_repairs(self):
+        self.ensure_one()
+        repairs = self.env['repair.order'].search([('picking_id', '=', self.id)])
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Reparaturaufträge',
+            'res_model': 'repair.order',
+            'view_mode': 'list,form',
+            'domain': [('id', 'in', repairs.ids)],
+        }
 
     @api.depends('move_line_ids.lot_id')
     def _compute_rma_has_serial_lots(self):

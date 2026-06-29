@@ -1,27 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- ─── Qualitätsauswertung: rma.analytics ─────────────────────────────── -->
+    <!-- ─── Qualitätsauswertung: rma.analytics ──────────────────────────────── -->
 
     <record id="view_rma_analytics_list" model="ir.ui.view">
         <field name="name">rma.analytics.list</field>
         <field name="model">rma.analytics</field>
         <field name="arch" type="xml">
-            <list string="Qualitätsauswertung" create="false" edit="false" delete="false"
-                  decoration-success="qty_c == 0 and qty_b == 0"
+            <list string="Qualitätsauswertung"
+                  create="false" edit="false" delete="false"
+                  decoration-success="pct_a == 100"
                   decoration-warning="qty_b > 0 and qty_c == 0"
                   decoration-danger="qty_c > 0">
-                <field name="split_date"/>
-                <field name="partner_id"/>
-                <field name="rma_reason_id"/>
-                <field name="product_id"/>
+                <field name="split_date" string="Datum"/>
+                <field name="partner_id" string="Kunde"/>
+                <field name="product_id" string="Artikel"/>
+                <field name="rma_reason_id" string="Rückgabegrund" optional="show"/>
                 <field name="qty_total" string="Gesamt" sum="∑ Gesamt"/>
-                <field name="qty_a" string="🟢 A-Ware" sum="∑ A-Ware"/>
-                <field name="qty_b" string="🟡 B-Ware" sum="∑ B-Ware"/>
-                <field name="qty_c" string="🔴 C-Ware" sum="∑ C-Ware"/>
+                <field name="qty_a" string="A-Ware" sum="∑ A-Ware"/>
+                <field name="pct_a" string="A %" optional="show"/>
+                <field name="qty_b" string="B-Ware" sum="∑ B-Ware"/>
+                <field name="pct_b" string="B %" optional="show"/>
+                <field name="qty_c" string="C-Ware" sum="∑ C-Ware"/>
+                <field name="pct_c" string="C %" optional="show"/>
+                <field name="dominant_quality" string="Hauptklasse"
+                       widget="badge"
+                       decoration-success="dominant_quality == 'a'"
+                       decoration-warning="dominant_quality == 'b'"
+                       decoration-danger="dominant_quality == 'c'"
+                       optional="show"/>
                 <field name="qty_return" string="Umtausch" sum="∑ Umtausch" optional="show"/>
                 <field name="qty_refund" string="Rückerstattung" sum="∑ Rückerstattung" optional="show"/>
-                <field name="user_id" optional="show"/>
-                <field name="picking_id" optional="show"/>
+                <field name="user_id" string="Geprüft von" optional="show"/>
+                <field name="picking_id" string="RMA-Beleg" optional="show"/>
             </list>
         </field>
     </record>
@@ -58,30 +68,52 @@
         </field>
     </record>
 
+    <!-- Erweiterte Suchmaske mit Kunden-, Artikel- und Q-Klassen-Auswahl -->
     <record id="view_rma_analytics_search" model="ir.ui.view">
         <field name="name">rma.analytics.search</field>
         <field name="model">rma.analytics</field>
         <field name="arch" type="xml">
             <search string="Qualitätsauswertung">
-                <field name="partner_id" string="Kunde"/>
+                <!-- Freitextsuche / Direkte Auswahl -->
+                <field name="partner_id" string="Kunde" filter_domain="[('partner_id', 'child_of', self)]"/>
                 <field name="product_id" string="Artikel"/>
-                <field name="rma_reason_id" string="Grund"/>
+                <field name="product_tmpl_id" string="Artikelvorlage"/>
+                <field name="rma_reason_id" string="Rückgabegrund"/>
                 <field name="picking_id" string="RMA-Beleg"/>
+                <field name="user_id" string="Geprüft von"/>
+
                 <separator/>
+
+                <!-- Q-Klassen-Filter -->
+                <filter name="only_a" string="Nur A-Ware"
+                        domain="[('qty_a', '&gt;', 0), ('qty_b', '=', 0), ('qty_c', '=', 0)]"/>
+                <filter name="only_b" string="Nur B-Ware"
+                        domain="[('qty_b', '&gt;', 0), ('qty_a', '=', 0), ('qty_c', '=', 0)]"/>
+                <filter name="only_c" string="Nur C-Ware"
+                        domain="[('qty_c', '&gt;', 0), ('qty_a', '=', 0), ('qty_b', '=', 0)]"/>
+                <filter name="has_b" string="Enthält B-Ware" domain="[('qty_b', '&gt;', 0)]"/>
+                <filter name="has_c" string="Enthält C-Ware" domain="[('qty_c', '&gt;', 0)]"/>
+                <filter name="mixed" string="Gemischte Klassen"
+                        domain="[('dominant_quality', '=', 'mixed')]"/>
+
+                <separator/>
+
+                <!-- Zeitraum-Filter -->
                 <filter name="this_month" string="Diesen Monat"
                         domain="[('split_date', '&gt;=', (context_today() + relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
                 <filter name="this_year" string="Dieses Jahr"
                         domain="[('split_date', '&gt;=', (context_today() + relativedelta(month=1, day=1)).strftime('%Y-%m-%d'))]"/>
-                <separator/>
-                <filter name="has_b" string="Hat B-Ware" domain="[('qty_b', '&gt;', 0)]"/>
-                <filter name="has_c" string="Hat C-Ware" domain="[('qty_c', '&gt;', 0)]"/>
                 <filter name="has_return" string="Hat Umtausch" domain="[('qty_return', '&gt;', 0)]"/>
+
                 <separator/>
+
+                <!-- Gruppierung -->
+                <filter name="group_customer" string="Kunde" context="{'group_by': 'partner_id'}"/>
+                <filter name="group_product" string="Artikel" context="{'group_by': 'product_tmpl_id'}"/>
+                <filter name="group_quality" string="Hauptklasse" context="{'group_by': 'dominant_quality'}"/>
+                <filter name="group_reason" string="Rückgabegrund" context="{'group_by': 'rma_reason_id'}"/>
                 <filter name="group_month" string="Monat" context="{'group_by': 'split_date:month'}"/>
                 <filter name="group_quarter" string="Quartal" context="{'group_by': 'split_date:quarter'}"/>
-                <filter name="group_reason" string="Rückgabegrund" context="{'group_by': 'rma_reason_id'}"/>
-                <filter name="group_partner" string="Kunde" context="{'group_by': 'partner_id'}"/>
-                <filter name="group_product" string="Artikel" context="{'group_by': 'product_tmpl_id'}"/>
                 <filter name="group_user" string="Benutzer" context="{'group_by': 'user_id'}"/>
             </search>
         </field>
@@ -90,7 +122,7 @@
     <record id="action_rma_analytics" model="ir.actions.act_window">
         <field name="name">Qualitätsauswertung</field>
         <field name="res_model">rma.analytics</field>
-        <field name="view_mode">graph,pivot,list</field>
+        <field name="view_mode">list,graph,pivot</field>
         <field name="context">{'search_default_this_year': 1}</field>
         <field name="search_view_id" ref="view_rma_analytics_search"/>
         <field name="help" type="html">
@@ -101,9 +133,8 @@
         </field>
     </record>
 
-    <!-- ─── RMA-Übersicht: Graph + Pivot auf stock.picking ─────────────────── -->
+    <!-- ─── RMA-Übersicht: Graph + Pivot auf stock.picking ───────────────────── -->
 
-    <!-- Balkendiagramm: Anzahl RMA-Eingänge je Monat, gruppiert nach Status -->
     <record id="view_rma_overview_graph" model="ir.ui.view">
         <field name="name">stock.picking.rma.graph</field>
         <field name="model">stock.picking</field>
@@ -115,7 +146,6 @@
         </field>
     </record>
 
-    <!-- Pivot: Rückgabegrund × Monat, Anzahl RMA-Eingänge -->
     <record id="view_rma_overview_pivot" model="ir.ui.view">
         <field name="name">stock.picking.rma.pivot</field>
         <field name="model">stock.picking</field>
@@ -127,27 +157,7 @@
         </field>
     </record>
 
-    <!-- Aktualisierte Aktion: Übersicht jetzt mit Graph + Pivot -->
-    <record id="action_rma_status_overview" model="ir.actions.act_window">
-        <field name="name">RMA-Übersicht</field>
-        <field name="res_model">stock.picking</field>
-        <field name="view_mode">kanban,list,graph,pivot,form</field>
-        <field name="domain">[('rma_is_receipt', '=', True)]</field>
-        <field name="context">{'search_default_group_by_rma_status': 1}</field>
-        <field name="search_view_id" ref="view_rma_status_overview_search"/>
-        <field name="views" eval="[
-            (ref('view_rma_status_overview_kanban'), 'kanban'),
-            (ref('view_rma_status_overview_list'), 'list'),
-            (ref('view_rma_overview_graph'), 'graph'),
-            (ref('view_rma_overview_pivot'), 'pivot'),
-            (False, 'form'),
-        ]"/>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">Noch keine RMA-Eingänge vorhanden.</p>
-        </field>
-    </record>
-
-    <!-- ─── Menüstruktur ────────────────────────────────────────────────────── -->
+    <!-- ─── Menüstruktur ─────────────────────────────────────────────────────── -->
 
     <menuitem id="menu_rma_auswertungen"
               name="Auswertungen"

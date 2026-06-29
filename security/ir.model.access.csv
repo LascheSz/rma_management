@@ -12,3 +12,9 @@ access_rma_audit_log_user,rma.audit.log.user,model_rma_audit_log,rma_management.
 access_rma_audit_log_manager,rma.audit.log.manager,model_rma_audit_log,rma_management.group_rma_manager,1,1,1,0
 access_rma_analytics_user,rma.analytics.user,model_rma_analytics,rma_management.group_rma_user,1,0,0,0
 access_rma_analytics_manager,rma.analytics.manager,model_rma_analytics,rma_management.group_rma_manager,1,1,1,1
+access_rma_ai_inspector_user,rma.ai.inspector.user,model_rma_ai_inspector,rma_management.group_rma_user,1,1,1,1
+access_rma_portal_request_user,rma.portal.request.user,model_rma_portal_request,rma_management.group_rma_user,1,1,1,1
+access_rma_portal_request_public,rma.portal.request.public,model_rma_portal_request,base.group_public,0,0,1,0
+access_rma_portal_request_line_user,rma.portal.request.line.user,model_rma_portal_request_line,rma_management.group_rma_user,1,1,1,1
+access_rma_portal_request_line_public,rma.portal.request.line.public,model_rma_portal_request_line,base.group_public,0,0,1,0
+access_rma_ref_proxy_user,rma.ref.proxy.user,model_rma_ref_proxy,rma_management.group_rma_user,1,0,0,0

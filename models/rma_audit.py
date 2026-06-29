@@ -14,6 +14,9 @@ class RmaAuditLog(models.Model):
     _description = 'RMA Management Audit-Log'
     _order = 'create_date desc, id desc'
 
+    def _default_user_id(self):
+        return self.env.user
+
     action = fields.Selection(
         selection=[
             ('deadline_confirmed', 'Fristüberschreitung bestätigt'),
@@ -28,7 +31,7 @@ class RmaAuditLog(models.Model):
     user_id = fields.Many2one(
         'res.users',
         string='Benutzer',
-        default=lambda self: self.env.user,
+        default='_default_user_id',
         required=True,
         readonly=True,
     )

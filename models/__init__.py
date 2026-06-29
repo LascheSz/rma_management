@@ -6,3 +6,6 @@ from . import rma_settings
 from . import rma_services
 from . import rma_order
 from . import rma_splitting
+from . import rma_ai_inspector
+from . import rma_portal_request
+from . import rma_ref_proxy

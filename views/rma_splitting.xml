@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- Server-Action, damit der Header-Button im Wizard sauber auf die Python-Aktion zeigt. -->
     <record id="action_rma_management_execute_split" model="ir.actions.server">
         <field name="name">RMA Mengenprüfung durchführen</field>
         <field name="model_id" ref="model_rma_splitting"/>
@@ -9,48 +8,73 @@
         <field name="code">if records:action = records.action_execute_split()</field>
     </record>
 
-    <!-- Hauptformular der Mengenprüfung: RMA-Eingang links, Prüf-Leitfaden rechts daneben. -->
     <record id="view_rma_management_splitting_form_custom" model="ir.ui.view">
         <field name="name">rma.splitting.form.custom</field>
         <field name="model">rma.splitting</field>
         <field name="arch" type="xml">
             <form string="RMA-Mengenprüfung" class="o_form_full_width rma_management_form rma_management_split_form">
                 <header>
-                    <!-- Nach Durchführung wird der Wizard gesperrt, damit keine Doppelbuchung entsteht. -->
                     <button name="%(action_rma_management_execute_split)d"
                             string="Durchführen"
                             type="action"
                             class="oe_highlight"
+                            icon="fa-check"
+                            invisible="not rma_order_id or processing_done"/>
+                    <button name="%(action_rma_ai_inspector)d"
+                            string="KI-Warenprüfung"
+                            type="action"
+                            class="btn-secondary"
+                            icon="fa-magic"
                             invisible="not rma_order_id or processing_done"/>
                     <field name="processing_done" invisible="1"/>
                 </header>
                 <sheet>
-                    <div class="alert alert-info mb-3" role="alert" invisible="rma_order_id">
-                        Bitte zuerst einen RMA-Eingang auswählen. Danach können die Mengen geprüft werden.
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="fa fa-tasks fa-2x text-primary"/>
+                        <div>
+                            <h4 class="mb-0">Mengenprüfung</h4>
+                            <small class="text-muted">Retoure einem RMA-Eingang zuordnen und A / B / C-Ware erfassen</small>
+                        </div>
                     </div>
-                    <div class="alert alert-success fs-4 fw-bold py-3"
+
+                    <div class="alert alert-info d-flex gap-2 align-items-center mb-3"
+                         role="alert"
+                         invisible="rma_order_id">
+                        <i class="fa fa-info-circle fa-lg"/>
+                        <span>Bitte zuerst einen RMA-Eingang auswählen. Danach können die Mengen geprüft werden.</span>
+                    </div>
+
+                    <div class="alert alert-success d-flex gap-2 align-items-center fs-5 fw-bold py-3"
                          role="alert"
                          invisible="not processing_done">
+                        <i class="fa fa-check-circle fa-lg"/>
                         Dieser RMA-Eingang wurde bereits vollständig durchgeführt und ist gesperrt.
                     </div>
+
                     <group string="Auftragsreferenz">
                         <field name="rma_incoming_picking_type_id" invisible="1"/>
                         <field name="rma_order_id"
                                domain="[('picking_type_id', '=', rma_incoming_picking_type_id)]"
-                               options="{'no_create': True, 'no_open': True}" />
+                               options="{'no_create': True, 'no_open': True}"/>
                         <field name="rma_reason_id" readonly="1"/>
                         <field name="has_serial_lots" invisible="1"/>
-                    </group>
-
-                    <group string="🔢 Barcode-Scanner" invisible="not has_serial_lots or not rma_order_id">
-                        <field name="barcode_quality_class" string="Q-Klasse" placeholder="1. Q-Klasse wählen …"/>
+                        <field name="barcode_active"
+                               string="Barcode-Scanner aktivieren"
+                               invisible="not has_serial_lots or not rma_order_id"/>
+                        <field name="barcode_quality_class"
+                               string="Q-Klasse"
+                               placeholder="Q-Klasse wählen …"
+                               invisible="not has_serial_lots or not rma_order_id or not barcode_active"/>
                         <field name="barcode_scan"
-                               string="Seriennummer"
-                               placeholder="2. Scannen oder eingeben + Enter …"
-                               invisible="not barcode_quality_class"/>
+                               string="Seriennummer scannen"
+                               placeholder="Scannen oder eingeben + Enter …"
+                               invisible="not has_serial_lots or not rma_order_id or not barcode_active"/>
                     </group>
 
-                    <group string="Kunden- und Adressinformationen" invisible="not rma_order_id" col="3" class="rma_management_customer_group">
+                    <group string="Kunden- und Adressinformationen"
+                           invisible="not rma_order_id"
+                           col="3"
+                           class="rma_management_customer_group">
                         <group class="rma_management_customer_image">
                             <field name="image_1920" widget="image" class="oe_avatar" options='{"preview_image": "image_128"}' readonly="1" nolabel="1"/>
                         </group>
@@ -74,26 +98,25 @@
                             <list editable="bottom" create="false" delete="false">
                                 <field name="stock_move_id" column_invisible="1" force_save="1"/>
                                 <field name="has_serial_lots" column_invisible="1"/>
-                                <field name="product_id" readonly="1" width="360px"/>
+                                <field name="product_id" readonly="1" width="200px"/>
                                 <button name="action_open_serial_quality"
                                         type="object"
                                         icon="fa-barcode"
                                         title="Seriennummern prüfen"
                                         column_invisible="not parent.has_serial_lots"
-                                        invisible="not has_serial_lots"/>
-                                <!-- Serien/Q-Klasse wird nur angezeigt, wenn mindestens eine Position Seriennummern enthält. -->
-                                <field name="serial_quality_summary" readonly="1" width="240px" column_invisible="not parent.has_serial_lots"/>
-                                <field name="product_uom_qty" string="Erwartet" readonly="1" width="110px"/>
-                                <field name="rma_qty_a" string="A-Ware" width="100px" force_save="1" readonly="has_serial_lots"/>
-                                <field name="rma_qty_b" string="B-Ware" width="100px" force_save="1" readonly="has_serial_lots"/>
-                                <field name="rma_qty_c" string="C-Ware" width="100px" force_save="1" readonly="has_serial_lots"/>
-                                <field name="rma_qty_return" string="Umtausch" width="120px" force_save="1"/>
-                                <field name="rma_qty_refund" string="Rückerstattung" width="150px" force_save="1"/>
+                                        invisible="not has_serial_lots"
+                                        width="40px"/>
+                                <field name="serial_quality_summary" readonly="1" width="160px" column_invisible="not parent.has_serial_lots"/>
+                                <field name="product_uom_qty" string="Erwartet" readonly="1" width="90px"/>
+                                <field name="rma_qty_a" string="A-Ware" width="80px" force_save="1" readonly="has_serial_lots"/>
+                                <field name="rma_qty_b" string="B-Ware" width="80px" force_save="1" readonly="has_serial_lots"/>
+                                <field name="rma_qty_c" string="C-Ware" width="80px" force_save="1" readonly="has_serial_lots"/>
+                                <field name="rma_qty_return" string="Umtausch" width="90px" force_save="1"/>
+                                <field name="rma_qty_refund" string="Rückerstattung" width="110px" force_save="1"/>
                             </list>
                         </field>
                     </div>
 
-                    <!-- Anhänge werden beim Durchführen an RMA-Eingang und Folgebelege geschrieben. -->
                     <group string="Prüf-Fotos / Anhänge" invisible="not rma_order_id">
                         <field name="rma_attachment_ids"
                                widget="many2many_binary"
@@ -101,28 +124,34 @@
                                readonly="processing_done"/>
                     </group>
                 </sheet>
-                <!-- Absichtlich außerhalb des sheets: der Leitfaden steht neben dem Formular statt es zu verkleinern. -->
                 <div class="rma_management_guide" invisible="not rma_order_id">
                     <h4>
                         <i class="fa fa-clipboard-list me-2"/>Prüf-Leitfaden
                     </h4>
-                    <img src="/rma_management/static/src/img/rma_pruefleitfaden_beispiel.png"
+                    <img src="/rma_management/static/src/img/rma_abc_beispiele.svg"
                          alt="Prüf-Leitfaden für Retouren"/>
                 </div>
             </form>
         </field>
     </record>
 
-    <!-- Modaldialog zur Q-Klassen-Zuordnung je Seriennummer. -->
+    <!-- Seriennummern Q-Klassen-Zuordnung -->
     <record id="view_rma_splitting_line_serial_quality_form" model="ir.ui.view">
         <field name="name">rma.splitting.line.serial.quality.form</field>
         <field name="model">rma.splitting.line</field>
         <field name="arch" type="xml">
             <form string="Seriennummern prüfen">
                 <sheet>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="fa fa-barcode fa-lg text-primary"/>
+                        <div>
+                            <strong>Q-Klasse je Seriennummer zuordnen</strong>
+                            <small class="text-muted d-block">A = Neuwertig · B = Gebrauchsspuren · C = Defekt</small>
+                        </div>
+                    </div>
                     <group>
                         <field name="product_id" readonly="1"/>
-                        <field name="product_uom_qty" readonly="1"/>
+                        <field name="product_uom_qty" readonly="1" string="Erwartete Menge"/>
                     </group>
                     <field name="serial_quality_line_ids" nolabel="1">
                         <list editable="bottom" create="false" delete="false">
@@ -135,14 +164,15 @@
                     <button name="action_apply_serial_quality"
                             string="Übernehmen"
                             type="object"
-                            class="oe_highlight"/>
+                            class="oe_highlight"
+                            icon="fa-check"/>
                     <button string="Abbrechen" special="cancel"/>
                 </footer>
             </form>
         </field>
     </record>
 
-    <!-- Zeigt die RMA-Q-Klasse auch in den Standard-Operationslisten der Lagerbewegung. -->
+    <!-- RMA-Q-Klasse in Lagerbewegungen -->
     <record id="view_stock_move_line_operation_tree_inherit_rma_quality" model="ir.ui.view">
         <field name="name">stock.move.line.operations.list.inherit.rma.quality</field>
         <field name="model">stock.move.line</field>
@@ -154,7 +184,6 @@
         </field>
     </record>
 
-    <!-- Dasselbe Feld in der detaillierten Operationsliste, damit beide Odoo-Ansichten konsistent sind. -->
     <record id="view_stock_move_line_detailed_operation_tree_inherit_rma_quality" model="ir.ui.view">
         <field name="name">stock.move.line.detailed.operations.list.inherit.rma.quality</field>
         <field name="model">stock.move.line</field>

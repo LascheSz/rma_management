@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_rma_ai_inspector_form" model="ir.ui.view">
+        <field name="name">rma.ai.inspector.form</field>
+        <field name="model">rma.ai.inspector</field>
+        <field name="arch" type="xml">
+            <form string="KI-Warenprüfung">
+                <sheet>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="fa fa-magic fa-2x text-primary" title="KI-Warenprüfung"/>
+                        <div>
+                            <h4 class="mb-0">KI-Warenklassifizierung</h4>
+                            <small class="text-muted">Foto hochladen — KI bewertet automatisch A / B / C-Ware</small>
+                        </div>
+                    </div>
+                    <field name="splitting_line_id" invisible="1"/>
+                    <field name="image_filename" invisible="1"/>
+
+                    <div class="row">
+                        <div class="col-md-5 text-center">
+                            <div class="border rounded p-2 bg-light" style="min-height: 200px; display: flex; align-items: center; justify-content: center;">
+                                <field name="image"
+                                       widget="image"
+                                       string="Produktfoto"
+                                       options='{"size": [320, 320]}'
+                                       nolabel="1"
+                                       class="img-fluid rounded"/>
+                            </div>
+                            <small class="text-muted d-block mt-1">JPG, PNG oder WebP</small>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="fw-semibold mb-1">Hinweise an die KI <small class="text-muted fw-normal">(optional)</small></div>
+                            <field name="notes"
+                                   nolabel="1"
+                                   placeholder="z.B. &quot;Verpackung fehlt, Gerät läuft einwandfrei&quot;"/>
+                            <div class="mt-3 d-grid" invisible="result_text">
+                                <button name="action_classify"
+                                        string="Jetzt analysieren"
+                                        type="object"
+                                        class="btn-primary btn-lg"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ergebnis: A-Ware -->
+                    <div class="alert alert-success d-flex gap-3 align-items-start mt-3"
+                         role="alert"
+                         invisible="quality_suggestion != 'a'">
+                        <i class="fa fa-check-circle fa-2x mt-1" title="A-Ware"/>
+                        <div class="w-100">
+                            <strong class="fs-5">A-Ware — Neuwertig</strong>
+                            <div class="mt-2">
+                                <field name="result_text" nolabel="1" readonly="1"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ergebnis: B-Ware -->
+                    <div class="alert alert-warning d-flex gap-3 align-items-start mt-3"
+                         role="alert"
+                         invisible="quality_suggestion != 'b'">
+                        <i class="fa fa-exclamation-triangle fa-2x mt-1" title="B-Ware"/>
+                        <div class="w-100">
+                            <strong class="fs-5">B-Ware — Gebrauchsspuren</strong>
+                            <div class="mt-2">
+                                <field name="result_text" nolabel="1" readonly="1"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ergebnis: C-Ware -->
+                    <div class="alert alert-danger d-flex gap-3 align-items-start mt-3"
+                         role="alert"
+                         invisible="quality_suggestion != 'c'">
+                        <i class="fa fa-times-circle fa-2x mt-1" title="C-Ware"/>
+                        <div class="w-100">
+                            <strong class="fs-5">C-Ware — Erhebliche Schäden</strong>
+                            <div class="mt-2">
+                                <field name="result_text" nolabel="1" readonly="1"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Antwort ohne klare Klassifizierung -->
+                    <div class="alert alert-secondary d-flex gap-3 align-items-start mt-3"
+                         role="alert"
+                         invisible="not result_text or quality_suggestion">
+                        <i class="fa fa-info-circle fa-2x mt-1" title="KI-Antwort"/>
+                        <div class="w-100">
+                            <strong class="fs-5">KI-Antwort</strong>
+                            <div class="mt-2">
+                                <field name="result_text" nolabel="1" readonly="1"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end mt-2" invisible="not result_text">
+                        <button name="action_classify"
+                                string="Erneut analysieren"
+                                type="object"
+                                class="btn-secondary"/>
+                        <button name="action_apply_suggestion"
+                                string="Empfehlung übernehmen"
+                                type="object"
+                                class="btn-primary"
+                                invisible="not quality_suggestion or not splitting_line_id"/>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_rma_ai_inspector" model="ir.actions.act_window">
+        <field name="name">KI-Warenprüfung</field>
+        <field name="res_model">rma.ai.inspector</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

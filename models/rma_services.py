@@ -30,7 +30,10 @@ class RmaOrderService(models.AbstractModel):
     def _get_valid_return_lines(self, wizard):
         """Filtert leere Zeilen heraus und validiert die gewünschten Rückgabemengen."""
         wizard.ensure_one()
-        valid_lines = wizard.line_ids.filtered(lambda line: line.return_qty > 0 and line.product_id.type != 'service')
+        valid_lines = wizard.line_ids.filtered_domain([
+            ('return_qty', '>', 0),
+            ('product_id.type', '!=', 'service'),
+        ])
 
         if not valid_lines:
             raise ValidationError(_('Keine gültigen Belegpositionen mit Rückgabemenge gefunden.'))
@@ -101,6 +104,10 @@ class RmaOrderService(models.AbstractModel):
                     details=self._get_audit_log()._build_quantity_details(valid_lines),
                 )
 
+                # Portal-Anfrage mit dem erzeugten Beleg verknüpfen
+                if wizard.portal_request_id:
+                    wizard.portal_request_id.action_link_picking(picking)
+
                 return picking
         except (UserError, ValidationError):
             raise
@@ -127,26 +134,22 @@ class RmaOrderService(models.AbstractModel):
             # Primär wird über sale_line_id gezählt. Der Origin-Fallback deckt ältere
             # oder manuell erzeugte Bewegungen ohne Verkaufspositionsverweis ab.
             moves |= move_model.search(move_domain + [('sale_line_id', '=', sale_order_line.id)])
-            order_product_lines = order.order_line.filtered(
-                lambda order_line: (
-                    not order_line.display_type
-                    and order_line.product_id == product
-                    and order_line.product_id.type != 'service'
-                )
-            )
+            order_product_lines = order.order_line.filtered_domain([
+                ('display_type', '=', False),
+                ('product_id', '=', product.id),
+                ('product_id.type', '!=', 'service'),
+            ])
             if len(order_product_lines) == 1:
                 moves |= move_model.search(move_domain + [
                     ('sale_line_id', '=', False),
                     ('picking_id.origin', '=', f"RMA: {order.name}"),
                 ])
         else:
-            order_product_lines = order.order_line.filtered(
-                lambda order_line: (
-                    not order_line.display_type
-                    and order_line.product_id == product
-                    and order_line.product_id.type != 'service'
-                )
-            )
+            order_product_lines = order.order_line.filtered_domain([
+                ('display_type', '=', False),
+                ('product_id', '=', product.id),
+                ('product_id.type', '!=', 'service'),
+            ])
             if len(order_product_lines) == 1:
                 moves |= move_model.search(move_domain + [('picking_id.origin', '=', f"RMA: {order.name}")])
 
@@ -264,7 +267,7 @@ class RmaSplittingService(models.AbstractModel):
             section_title = section_title_by_field[field_name]
             quality_class = quality_class_by_field[field_name]
 
-            lines_with_quantity = wizard.line_ids.filtered(lambda line: line[field_name] > 0)
+            lines_with_quantity = wizard.line_ids.filtered_domain([(field_name, '>', 0)])
             if not lines_with_quantity:
                 continue
 
@@ -298,8 +301,8 @@ class RmaSplittingService(models.AbstractModel):
                     'description_picking': move.description_picking or move.product_id.display_name,
                     'origin': wizard.rma_order_id.name,
                 })
-                serial_lots = line.serial_quality_line_ids.filtered(
-                    lambda serial_line: serial_line.quality_class == quality_class
+                serial_lots = line.serial_quality_line_ids.filtered_domain(
+                    [('quality_class', '=', quality_class)]
                 ).lot_id
                 if serial_lots:
                     # Seriennummern werden erst nach action_confirm geschrieben,
@@ -400,8 +403,8 @@ class RmaSplittingService(models.AbstractModel):
             'rma_qty_b': 'b',
             'rma_qty_c': 'c',
         }
-        serial_lots = line.serial_quality_line_ids.filtered(
-            lambda serial_line: serial_line.quality_class == quality_class_by_field[field_name]
+        serial_lots = line.serial_quality_line_ids.filtered_domain(
+            [('quality_class', '=', quality_class_by_field[field_name])]
         ).lot_id
         if serial_lots:
             return '%s: %s (%s)' % (
@@ -473,6 +476,10 @@ class RmaSplittingService(models.AbstractModel):
                 self._attach_inspection_files(wizard, created_pickings)
                 self._write_note_and_mark_done(wizard)
                 self._create_analytics_records(wizard)
+                b_ware_picking = created_pickings.filtered_domain(
+                    [('origin', 'ilike', 'B-Ware')]
+                )[:1]
+                self._create_repair_orders(wizard, b_ware_picking)
                 self._get_audit_log().log_event(
                     'split_completed',
                     _('Mengenprüfung für %(picking)s abgeschlossen') % {
@@ -542,6 +549,41 @@ class RmaSplittingService(models.AbstractModel):
                 'qty_refund': line.rma_qty_refund,
             })
 
+    def _create_repair_orders(self, wizard, b_ware_picking):
+        """Legt je B-Ware-Position automatisch einen Reparaturauftrag an.
+
+        Bei Seriennummern-Artikeln entsteht ein Auftrag pro Seriennummer,
+        bei Mengenware ein Auftrag pro Artikel mit der gesamten B-Ware-Menge.
+        """
+        repair_model = self.env['repair.order']
+        b_ware_lines = wizard.line_ids.filtered_domain([('rma_qty_b', '>', 0)])
+        if not b_ware_lines:
+            return
+
+        for line in b_ware_lines:
+            b_lots = line.serial_quality_line_ids.filtered_domain(
+                [('quality_class', '=', 'b')]
+            ).lot_id
+
+            if b_lots:
+                for lot in b_lots:
+                    repair_model.create({
+                        'product_id': line.product_id.id,
+                        'product_qty': 1.0,
+                        'lot_id': lot.id,
+                        'partner_id': wizard.partner_id.id,
+                        'picking_id': b_ware_picking.id if b_ware_picking else False,
+                        'company_id': self.env.company.id,
+                    })
+            else:
+                repair_model.create({
+                    'product_id': line.product_id.id,
+                    'product_qty': line.rma_qty_b,
+                    'partner_id': wizard.partner_id.id,
+                    'picking_id': b_ware_picking.id if b_ware_picking else False,
+                    'company_id': self.env.company.id,
+                })
+
     def _attach_inspection_files(self, wizard, created_pickings):
         """Hängt Prüf-Fotos an RMA-Eingang und Folgebelege an."""
         attachments = wizard.rma_attachment_ids
@@ -555,3 +597,4 @@ class RmaSplittingService(models.AbstractModel):
         wizard.rma_order_id.rma_attachment_ids = [(4, attachment.id) for attachment in attachments]
         for picking in created_pickings:
             picking.rma_attachment_ids = [(4, attachment.id) for attachment in attachments]
+

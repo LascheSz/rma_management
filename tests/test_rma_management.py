@@ -4,6 +4,20 @@ from odoo import Command, fields
 from odoo.tests.common import TransactionCase
 
 
+def _has_message_with_text(messages, text):
+    for msg in messages:
+        if text in (msg.body or ''):
+            return True
+    return False
+
+
+def _has_message_with_attachment(messages, attachment):
+    for msg in messages:
+        if attachment in msg.attachment_ids:
+            return True
+    return False
+
+
 class TestRmaManagement(TransactionCase):
     """Regressionstests für RMA-Erstellung, Prüfung, Seriennummern und Audit."""
 
@@ -41,12 +55,12 @@ class TestRmaManagement(TransactionCase):
             })],
         })
         sale_order.action_confirm()
-        return sale_order, sale_order.order_line.filtered(lambda line: not line.display_type)[:1]
+        return sale_order, sale_order.order_line.filtered_domain([('display_type', '=', False)])[:1]
 
     def _deliver_serial_sale_order(self, sale_order, serial_lots):
         """Hilfsmethode: Seriennummern im zugehörigen Lieferbeleg ausliefern."""
-        picking = sale_order.picking_ids.filtered(lambda picking: picking.picking_type_code == 'outgoing')[:1]
-        move = picking.move_ids.filtered(lambda move: move.product_id == serial_lots[:1].product_id)[:1]
+        picking = sale_order.picking_ids.filtered_domain([('picking_type_code', '=', 'outgoing')])[:1]
+        move = picking.move_ids.filtered_domain([('product_id', '=', serial_lots[:1].product_id.id)])[:1]
         move.move_line_ids.unlink()
         for serial_lot in serial_lots:
             self.env['stock.move.line'].create({
@@ -159,7 +173,7 @@ class TestRmaManagement(TransactionCase):
         self.assertEqual(picking.move_ids.product_uom_qty, 2.0)
         if 'sale_line_id' in self.env['stock.move']._fields:
             self.assertEqual(picking.move_ids.sale_line_id, sale_order_line)
-        self.assertTrue(sale_order.picking_ids.filtered(lambda picking: picking.picking_type_code == 'outgoing').rma_receipt_created)
+        self.assertTrue(sale_order.picking_ids.filtered_domain([('picking_type_code', '=', 'outgoing')]).rma_receipt_created)
 
         audit_log = self.env['rma.audit.log'].search([
             ('action', '=', 'receipt_created'),
@@ -167,8 +181,8 @@ class TestRmaManagement(TransactionCase):
             ('picking_id', '=', picking.id),
         ], limit=1)
         self.assertTrue(audit_log)
-        self.assertTrue(picking.message_ids.filtered(lambda message: 'RMA Audit' in message.body))
-        self.assertTrue(sale_order.message_ids.filtered(lambda message: 'RMA Audit' in message.body))
+        self.assertTrue(_has_message_with_text(picking.message_ids, 'RMA Audit'))
+        self.assertTrue(_has_message_with_text(sale_order.message_ids, 'RMA Audit'))
 
     def test_returned_quantity_counts_done_rma_moves_only(self):
         """Nur erledigte RMA-Eingänge reduzieren die noch mögliche Rückgabemenge."""
@@ -239,9 +253,9 @@ class TestRmaManagement(TransactionCase):
             ('picking_id', '=', rma_picking.id),
         ], limit=1)
         self.assertEqual(audit_log.generated_picking_ids, created_pickings)
-        self.assertTrue(rma_picking.message_ids.filtered(lambda message: attachment in message.attachment_ids))
+        self.assertTrue(_has_message_with_attachment(rma_picking.message_ids, attachment))
         for picking in created_pickings:
-            self.assertTrue(picking.message_ids.filtered(lambda message: 'RMA Audit' in message.body))
+            self.assertTrue(_has_message_with_text(picking.message_ids, 'RMA Audit'))
 
     def test_serial_selection_and_quality_classes_are_carried_to_pickings(self):
         """Seriennummern laufen von Auswahl bis Q-Klasse durch alle RMA-Belege."""
@@ -284,8 +298,8 @@ class TestRmaManagement(TransactionCase):
         split = self.env['rma.splitting'].create({'rma_order_id': rma_picking.id})
         split_line = split.line_ids[:1]
         self.assertEqual(split_line.serial_quality_line_ids.lot_id, selected_lots)
-        split_line.serial_quality_line_ids.filtered(lambda serial_line: serial_line.lot_id == selected_lots[0]).quality_class = 'a'
-        split_line.serial_quality_line_ids.filtered(lambda serial_line: serial_line.lot_id == selected_lots[1]).quality_class = 'c'
+        split_line.serial_quality_line_ids.filtered_domain([('lot_id', '=', selected_lots[0].id)]).quality_class = 'a'
+        split_line.serial_quality_line_ids.filtered_domain([('lot_id', '=', selected_lots[1].id)]).quality_class = 'c'
         split_line.action_apply_serial_quality()
         self.assertEqual(split_line.rma_qty_a, 1.0)
         self.assertEqual(split_line.rma_qty_b, 0.0)
@@ -296,15 +310,15 @@ class TestRmaManagement(TransactionCase):
         self.assertEqual(len(created_pickings), 2)
 
         self.assertEqual(
-            rma_picking.move_line_ids.filtered(lambda move_line: move_line.lot_id == selected_lots[0]).rma_quality_class,
+            rma_picking.move_line_ids.filtered_domain([('lot_id', '=', selected_lots[0].id)]).rma_quality_class,
             'a',
         )
         self.assertEqual(
-            rma_picking.move_line_ids.filtered(lambda move_line: move_line.lot_id == selected_lots[1]).rma_quality_class,
+            rma_picking.move_line_ids.filtered_domain([('lot_id', '=', selected_lots[1].id)]).rma_quality_class,
             'c',
         )
-        a_picking = created_pickings.filtered(lambda picking: picking.picking_type_id == self.config._get_warehouse_receipt_type())
-        c_picking = created_pickings.filtered(lambda picking: picking.picking_type_id == self.config._get_picking_type('scrap'))
+        a_picking = created_pickings.filtered_domain([('picking_type_id', '=', self.config._get_warehouse_receipt_type().id)])
+        c_picking = created_pickings.filtered_domain([('picking_type_id', '=', self.config._get_picking_type('scrap').id)])
         self.assertEqual(a_picking.move_line_ids.lot_id, selected_lots[0])
         self.assertEqual(a_picking.move_line_ids.rma_quality_class, 'a')
         self.assertEqual(c_picking.move_line_ids.lot_id, selected_lots[1])
@@ -367,7 +381,7 @@ class TestRmaManagement(TransactionCase):
             ('sale_order_id', '=', sale_order.id),
         ], limit=1)
         self.assertTrue(audit_log)
-        self.assertTrue(sale_order.message_ids.filtered(lambda message: 'Fristüberschreitung' in message.body))
+        self.assertTrue(_has_message_with_text(sale_order.message_ids, 'Fristüberschreitung'))
 
     def test_default_return_deadline_uses_settings_parameter(self):
         """Neue Kunden übernehmen die konfigurierte Standard-Rückgabefrist."""

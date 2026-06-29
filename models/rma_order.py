@@ -35,6 +35,14 @@ class RmaOrder(models.TransientModel):
     def _get_rma_order_service(self):
         return self.env['rma.order.service']
 
+    rma_reference = fields.Many2one(
+        'rma.ref.proxy',
+        string='Referenz',
+    )
+    portal_request_id = fields.Many2one(
+        'rma.portal.request',
+        string='Portal-Anfrage',
+    )
     sale_order_id = fields.Many2one(
         'sale.order',
         string='Verkaufsauftrag',
@@ -129,11 +137,62 @@ class RmaOrder(models.TransientModel):
             'message': _('"%s" gehört nicht zu den Lieferungen dieses Auftrags.') % scanned,
         }}
 
+    @api.onchange('rma_reference')
+    def _onchange_rma_reference(self):
+        """Befüllt Felder aus der gewählten Referenz (Portal-Anfrage oder Verkaufsauftrag)."""
+        for wizard in self:
+            ref = wizard.rma_reference
+            if not ref:
+                wizard.portal_request_id = False
+                wizard.sale_order_id = False
+                continue
+
+            if ref.ref_type == 'portal' and ref.portal_request_id:
+                req = ref.portal_request_id
+                wizard.portal_request_id = req
+                if req.sale_order_id:
+                    wizard.sale_order_id = req.sale_order_id
+                if req.rma_reason_id:
+                    wizard.rma_reason_id = req.rma_reason_id
+                wizard._apply_portal_request_quantities()
+            elif ref.ref_type == 'sale' and ref.sale_order_id:
+                wizard.portal_request_id = False
+                wizard.sale_order_id = ref.sale_order_id
+
+    @api.onchange('portal_request_id')
+    def _onchange_portal_request_id(self):
+        """Befüllt Verkaufsauftrag und Grund aus der Portal-Anfrage vor."""
+        for wizard in self:
+            if not wizard.portal_request_id:
+                continue
+            req = wizard.portal_request_id
+            if req.sale_order_id:
+                wizard.sale_order_id = req.sale_order_id
+            wizard.rma_reason_id = req.rma_reason_id
+            wizard._apply_portal_request_quantities()
+
+    def _apply_portal_request_quantities(self):
+        """Setzt return_qty der Zeilen auf die vom Kunden angegebenen Mengen."""
+        self.ensure_one()
+        if not self.portal_request_id:
+            return
+        qty_by_product = {
+            line.product_id.id: line.qty_requested
+            for line in self.portal_request_id.line_ids
+            if line.qty_requested > 0
+        }
+        for line in self.line_ids:
+            if line.product_id.id in qty_by_product:
+                line.return_qty = qty_by_product[line.product_id.id]
+
     @api.onchange('sale_order_id')
     def _onchange_sale_order_id(self):
         """Lädt beim Wechsel des Verkaufsauftrags die retourenfähigen Positionen neu."""
         for wizard in self:
             wizard.line_ids = [(5, 0, 0)] + wizard._get_order_line_commands()
+            # Mengen aus Portal-Anfrage wieder anwenden falls vorhanden
+            if wizard.portal_request_id:
+                wizard._apply_portal_request_quantities()
 
     @api.depends('line_ids.has_serial_lots')
     def _compute_has_serial_lots(self):
@@ -619,9 +678,7 @@ class SaleOrder(models.Model):
         for order in self:
             rma_pickings = order.picking_ids.filtered('rma_is_receipt')
             order.rma_count = len(rma_pickings)
-            order.rma_open_count = len(rma_pickings.filtered(
-                lambda p: p.rma_status == 'open'
-            ))
+            order.rma_open_count = len(rma_pickings.filtered_domain([('rma_status', '=', 'open')]))
 
     def action_view_rmas(self):
         """Öffnet alle RMA-Eingänge des Verkaufsauftrags."""
@@ -658,12 +715,15 @@ class ResPartner(models.Model):
 
     _inherit = 'res.partner'
 
-    rma_return_deadline_days = fields.Integer(
-        string='Rückgabefrist (Tage)',
-        default=lambda self: int(self.env['ir.config_parameter'].sudo().get_param(
+    def _default_rma_return_deadline_days(self):
+        return int(self.env['ir.config_parameter'].sudo().get_param(
             'rma_management.default_return_deadline_days',
             14,
-        )),
+        ))
+
+    rma_return_deadline_days = fields.Integer(
+        string='Rückgabefrist (Tage)',
+        default='_default_rma_return_deadline_days',
     )
 
 

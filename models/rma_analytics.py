@@ -42,8 +42,59 @@ class RmaAnalytics(models.Model):
         readonly=True,
         digits='Product Unit of Measure',
     )
+    pct_a = fields.Float(
+        string='A-Ware %',
+        compute='_compute_percentages',
+        store=True,
+        readonly=True,
+        digits=(5, 1),
+    )
+    pct_b = fields.Float(
+        string='B-Ware %',
+        compute='_compute_percentages',
+        store=True,
+        readonly=True,
+        digits=(5, 1),
+    )
+    pct_c = fields.Float(
+        string='C-Ware %',
+        compute='_compute_percentages',
+        store=True,
+        readonly=True,
+        digits=(5, 1),
+    )
+    dominant_quality = fields.Selection(
+        [('a', 'A-Ware'), ('b', 'B-Ware'), ('c', 'C-Ware'), ('mixed', 'Gemischt')],
+        string='Hauptklasse',
+        compute='_compute_percentages',
+        store=True,
+        readonly=True,
+    )
 
     @api.depends('qty_a', 'qty_b', 'qty_c')
     def _compute_qty_total(self):
         for record in self:
             record.qty_total = record.qty_a + record.qty_b + record.qty_c
+
+    @api.depends('qty_a', 'qty_b', 'qty_c', 'qty_total')
+    def _compute_percentages(self):
+        for rec in self:
+            total = rec.qty_total
+            if total:
+                rec.pct_a = round(rec.qty_a / total * 100, 1)
+                rec.pct_b = round(rec.qty_b / total * 100, 1)
+                rec.pct_c = round(rec.qty_c / total * 100, 1)
+            else:
+                rec.pct_a = rec.pct_b = rec.pct_c = 0.0
+
+            # Hauptklasse: nur wenn >50 % auf eine Klasse entfällt
+            if rec.qty_c > 0 and rec.qty_a == 0 and rec.qty_b == 0:
+                rec.dominant_quality = 'c'
+            elif rec.qty_b > 0 and rec.qty_a == 0 and rec.qty_c == 0:
+                rec.dominant_quality = 'b'
+            elif rec.qty_a > 0 and rec.qty_b == 0 and rec.qty_c == 0:
+                rec.dominant_quality = 'a'
+            elif total:
+                rec.dominant_quality = 'mixed'
+            else:
+                rec.dominant_quality = False
