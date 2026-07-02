@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="action_report_rma_portal_request" model="ir.actions.report">
+        <field name="name">RMA-Rücksendeschein</field>
+        <field name="model">rma.portal.request</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">rma_management.report_rma_portal_request_document</field>
+        <field name="report_file">rma_management.report_rma_portal_request_document</field>
+        <field name="print_report_name">'Rücksendeschein - ' + object.name</field>
+        <field name="binding_model_id" ref="model_rma_portal_request"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_rma_portal_request_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+
+                        <!-- Kopfzeile -->
+                        <div style="border-bottom: 3px solid #714b67; padding-bottom: 10px; margin-bottom: 20px;">
+                            <h2 style="color: #714b67; margin: 0; font-size: 18pt;">RMA-Rücksendeschein</h2>
+                            <p style="color: #666; margin: 4px 0 0 0; font-size: 9pt;">
+                                Bitte diesen Schein ausdrucken und der Sendung beilegen.
+                            </p>
+                        </div>
+
+                        <!-- Anfragedaten + Kundenadresse nebeneinander -->
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                            <tr>
+                                <td style="width: 50%; vertical-align: top; padding-right: 20px;">
+                                    <table style="width: 100%; border-collapse: collapse;">
+                                        <tr>
+                                            <td style="color: #888; padding: 3px 0; width: 42%; font-size: 9pt;">Anfrage-Nr.</td>
+                                            <td style="font-weight: bold; font-size: 11pt;"><t t-esc="doc.name"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #888; padding: 3px 0; font-size: 9pt;">Datum</td>
+                                            <td style="font-size: 9pt;"><t t-esc="doc.create_date" t-options='{"widget": "date"}'/></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #888; padding: 3px 0; font-size: 9pt;">Rechnung</td>
+                                            <td style="font-size: 9pt;"><t t-esc="doc.invoice_id.name"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #888; padding: 3px 0; font-size: 9pt;">Rückgabegrund</td>
+                                            <td style="font-size: 9pt;"><t t-esc="doc.rma_reason_id.name"/></td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td style="width: 50%; vertical-align: top; padding-left: 20px; border-left: 1px solid #ddd;">
+                                    <p style="margin: 0 0 4px 0; font-weight: bold; font-size: 9pt;">Kunde</p>
+                                    <p style="margin: 0; font-size: 9pt; line-height: 1.6;">
+                                        <t t-esc="doc.partner_id.name"/><br/>
+                                        <t t-if="doc.partner_id.street">
+                                            <t t-esc="doc.partner_id.street"/><br/>
+                                        </t>
+                                        <t t-if="doc.partner_id.zip or doc.partner_id.city">
+                                            <t t-esc="doc.partner_id.zip"/>&#160;<t t-esc="doc.partner_id.city"/>
+                                        </t>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Artikelliste -->
+                        <h4 style="border-bottom: 1px solid #ddd; padding-bottom: 6px; margin-bottom: 0; font-size: 10pt;">
+                            Zurückzusendende Artikel
+                        </h4>
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                            <thead>
+                                <tr style="background-color: #f0eaf3;">
+                                    <th style="text-align: left; padding: 7px 8px; font-size: 9pt; border-bottom: 1px solid #ccc;">Artikel</th>
+                                    <th style="text-align: left; padding: 7px 8px; font-size: 9pt; border-bottom: 1px solid #ccc;">Referenz</th>
+                                    <th style="text-align: right; padding: 7px 8px; font-size: 9pt; border-bottom: 1px solid #ccc;">Menge</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="doc.line_ids" t-as="line">
+                                    <tr>
+                                        <td style="padding: 6px 8px; font-size: 9pt; border-bottom: 1px solid #eee;">
+                                            <t t-esc="line.product_id.name"/>
+                                        </td>
+                                        <td style="padding: 6px 8px; font-size: 9pt; color: #666; border-bottom: 1px solid #eee;">
+                                            <t t-esc="line.product_id.default_code or ''"/>
+                                        </td>
+                                        <td style="padding: 6px 8px; font-size: 9pt; text-align: right; border-bottom: 1px solid #eee;">
+                                            <t t-esc="line.qty_requested"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <!-- Hinweisbox -->
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                            <tr>
+                                <td style="background-color: #fff8e1; border: 1px solid #ffc107; padding: 12px 16px; font-size: 9pt;">
+                                    <strong>Wichtig:</strong> Bitte schreiben Sie die Anfrage-Nr.
+                                    <strong><t t-esc="doc.name"/></strong> gut sichtbar auf das Paket
+                                    oder legen Sie diesen Schein der Sendung bei.
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Problembeschreibung -->
+                        <t t-if="doc.description">
+                            <h4 style="border-bottom: 1px solid #ddd; padding-bottom: 6px; font-size: 10pt;">
+                                Problembeschreibung
+                            </h4>
+                            <p style="font-size: 9pt;"><t t-esc="doc.description"/></p>
+                        </t>
+
+                        <!-- Unterschriftsfeld -->
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 48px;">
+                            <tr>
+                                <td style="width: 30%; border-top: 1px solid #aaa; padding-top: 5px; color: #888; font-size: 8pt;">
+                                    Ort, Datum
+                                </td>
+                                <td style="width: 10%;"></td>
+                                <td style="width: 60%; border-top: 1px solid #aaa; padding-top: 5px; color: #888; font-size: 8pt;">
+                                    Unterschrift Kunde
+                                </td>
+                            </tr>
+                        </table>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

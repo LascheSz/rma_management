@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_rma_report_wizard_form" model="ir.ui.view">
+        <field name="name">rma.report.wizard.form</field>
+        <field name="model">rma.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Bericht konfigurieren">
+                <sheet>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="fa fa-bar-chart fa-2x text-primary"/>
+                        <div>
+                            <h4 class="mb-0">Auswertung konfigurieren</h4>
+                            <small class="text-muted">Wähle was du sehen möchtest — alle Felder sind optional</small>
+                        </div>
+                    </div>
+
+                    <group string="Was soll ausgewertet werden?">
+                        <group>
+                            <field name="partner_ids" widget="many2many_tags"
+                                   placeholder="Alle Kunden"/>
+                            <field name="product_ids" widget="many2many_tags"
+                                   placeholder="Alle Artikel"/>
+                            <field name="rma_reason_ids" widget="many2many_tags"
+                                   placeholder="Alle Rückgabegründe"/>
+                        </group>
+                        <group>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                    </group>
+
+                    <group string="Welche Klassen anzeigen?">
+                        <div class="d-flex gap-4 ps-3 pb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="show_a" nolabel="1"/>
+                                <span class="badge text-bg-success px-3">A-Ware</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="show_b" nolabel="1"/>
+                                <span class="badge text-bg-warning px-3">B-Ware</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="show_c" nolabel="1"/>
+                                <span class="badge text-bg-danger px-3">C-Ware</span>
+                            </div>
+                        </div>
+                    </group>
+
+                    <group string="Wie soll der Graph aussehen?">
+                        <field name="group_by" string="X-Achse gruppieren nach"/>
+                        <field name="graph_type" string="Diagrammtyp"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_open_report"
+                            string="Bericht anzeigen"
+                            type="object"
+                            class="oe_highlight"
+                            icon="fa-bar-chart"/>
+                    <button string="Abbrechen" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_rma_report_wizard" model="ir.actions.act_window">
+        <field name="name">Bericht konfigurieren</field>
+        <field name="res_model">rma.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_rma_report_wizard"
+              name="Bericht erstellen"
+              parent="menu_rma_auswertungen"
+              action="action_rma_report_wizard"
+              groups="rma_management.group_rma_user"
+              sequence="5"/>
+</odoo>

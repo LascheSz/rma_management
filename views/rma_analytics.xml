@@ -36,16 +36,20 @@
         </field>
     </record>
 
-    <!-- Gestapeltes Balkendiagramm: A/B/C-Mengen je Monat -->
+    <!-- Gestapeltes Balkendiagramm: A/B/C je Monat — Standardansicht -->
     <record id="view_rma_analytics_graph" model="ir.ui.view">
         <field name="name">rma.analytics.graph</field>
         <field name="model">rma.analytics</field>
         <field name="arch" type="xml">
-            <graph string="A/B/C-Aufteilung" type="bar" stacked="1" order="DESC">
-                <field name="split_date" interval="month"/>
+            <graph string="Qualitätsverteilung" type="bar" stacked="1">
+                <field name="split_date" interval="month" string="Monat"/>
                 <field name="qty_a" type="measure" string="A-Ware"/>
                 <field name="qty_b" type="measure" string="B-Ware"/>
                 <field name="qty_c" type="measure" string="C-Ware"/>
+                <field name="qty_total" type="measure" string="Gesamt"/>
+                <field name="pct_a" type="measure" string="A %"/>
+                <field name="pct_b" type="measure" string="B %"/>
+                <field name="pct_c" type="measure" string="C %"/>
             </graph>
         </field>
     </record>
@@ -108,13 +112,15 @@
                 <separator/>
 
                 <!-- Gruppierung -->
+                <filter name="group_month" string="Monat" context="{'group_by': 'split_date:month'}"/>
+                <filter name="group_quarter" string="Quartal" context="{'group_by': 'split_date:quarter'}"/>
+                <filter name="group_year" string="Jahr" context="{'group_by': 'split_date:year'}"/>
                 <filter name="group_customer" string="Kunde" context="{'group_by': 'partner_id'}"/>
                 <filter name="group_product" string="Artikel" context="{'group_by': 'product_tmpl_id'}"/>
                 <filter name="group_quality" string="Hauptklasse" context="{'group_by': 'dominant_quality'}"/>
                 <filter name="group_reason" string="Rückgabegrund" context="{'group_by': 'rma_reason_id'}"/>
-                <filter name="group_month" string="Monat" context="{'group_by': 'split_date:month'}"/>
-                <filter name="group_quarter" string="Quartal" context="{'group_by': 'split_date:quarter'}"/>
                 <filter name="group_user" string="Benutzer" context="{'group_by': 'user_id'}"/>
+
             </search>
         </field>
     </record>
@@ -122,8 +128,8 @@
     <record id="action_rma_analytics" model="ir.actions.act_window">
         <field name="name">Qualitätsauswertung</field>
         <field name="res_model">rma.analytics</field>
-        <field name="view_mode">list,graph,pivot</field>
-        <field name="context">{'search_default_this_year': 1}</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="context">{'search_default_this_year': 1, 'search_default_group_month': 1, 'search_default_group_quality': 1}</field>
         <field name="search_view_id" ref="view_rma_analytics_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

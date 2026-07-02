@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_rma_reject_wizard_form" model="ir.ui.view">
+        <field name="name">rma.reject.wizard.form</field>
+        <field name="model">rma.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Anfrage ablehnen">
+                <sheet>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="fa fa-times-circle fa-2x text-danger"/>
+                        <div>
+                            <h4 class="mb-0">RMA-Anfrage ablehnen</h4>
+                            <small class="text-muted">
+                                Der Kunde erhält automatisch eine E-Mail mit dem Ablehnungsgrund.
+                            </small>
+                        </div>
+                    </div>
+                    <group>
+                        <field name="request_id" invisible="1"/>
+                        <field name="request_name" string="Anfrage-Nr." readonly="1"/>
+                        <field name="partner_name" string="Kunde" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="rejection_reason"
+                               string="Ablehnungsgrund"
+                               required="1"
+                               nolabel="1"
+                               placeholder="z. B. Rückgabefrist abgelaufen, Artikel zeigt keine Mängel, fehlende Kaufbelege ..."
+                               style="min-height:100px;"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm_reject"
+                            string="Ablehnen &amp; E-Mail senden"
+                            type="object"
+                            class="btn-danger"/>
+                    <button string="Abbrechen" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

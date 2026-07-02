@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 860" font-family="Arial, sans-serif">
+
+  <!-- Hintergrund -->
+  <rect width="480" height="860" fill="#f8f8f8" rx="10"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="480" height="48" fill="#714b67" rx="10"/>
+  <rect x="0" y="38" width="480" height="10" fill="#714b67"/>
+  <text x="240" y="19" text-anchor="middle" fill="white" font-size="13" font-weight="bold">Beispiele: Qualitätseinstufung</text>
+  <text x="240" y="36" text-anchor="middle" fill="#f0d9eb" font-size="10">So erkennst du A-, B- und C-Ware</text>
+
+  <!-- ══════════ A-WARE ══════════ -->
+  <rect x="10" y="62" width="460" height="250" fill="white" rx="8" stroke="#4caf50" stroke-width="2"/>
+  <!-- Badge -->
+  <rect x="10" y="62" width="460" height="34" fill="#4caf50" rx="8"/>
+  <rect x="10" y="82" width="460" height="14" fill="#4caf50"/>
+  <text x="30" y="84" fill="white" font-size="18" font-weight="bold">A</text>
+  <text x="52" y="84" fill="white" font-size="13" font-weight="bold">A-Ware — Neuwertig</text>
+
+  <!-- Laptop Illustration A (makellos) -->
+  <!-- Bildschirm -->
+  <rect x="60" y="108" width="140" height="100" fill="#1a1a2e" rx="6"/>
+  <rect x="65" y="113" width="130" height="88" fill="#0d47a1"/>
+  <!-- Glanzeffekt -->
+  <rect x="65" y="113" width="130" height="20" fill="white" opacity="0.08" rx="2"/>
+  <!-- Desktop-Icon simulieren -->
+  <rect x="110" y="138" width="40" height="30" fill="#1565c0" rx="3"/>
+  <rect x="115" y="143" width="30" height="20" fill="#42a5f5" rx="2"/>
+  <!-- Tastatur -->
+  <rect x="50" y="208" width="160" height="12" fill="#e0e0e0" rx="3"/>
+  <rect x="55" y="209" width="150" height="10" fill="#bdbdbd" rx="2"/>
+  <!-- Tasten -->
+  <rect x="58" y="210" width="8" height="7" fill="#9e9e9e" rx="1"/>
+  <rect x="70" y="210" width="8" height="7" fill="#9e9e9e" rx="1"/>
+  <rect x="82" y="210" width="8" height="7" fill="#9e9e9e" rx="1"/>
+  <rect x="94" y="210" width="8" height="7" fill="#9e9e9e" rx="1"/>
+  <rect x="106" y="210" width="8" height="7" fill="#9e9e9e" rx="1"/>
+  <rect x="118" y="210" width="8" height="7" fill="#9e9e9e" rx="1"/>
+  <rect x="130" y="210" width="8" height="7" fill="#9e9e9e" rx="1"/>
+  <rect x="142" y="210" width="8" height="7" fill="#9e9e9e" rx="1"/>
+  <rect x="154" y="210" width="8" height="7" fill="#9e9e9e" rx="1"/>
+  <rect x="166" y="210" width="8" height="7" fill="#9e9e9e" rx="1"/>
+  <!-- Originalkarton -->
+  <rect x="230" y="108" width="90" height="100" fill="#fff9c4" rx="4" stroke="#f9a825" stroke-width="1.5"/>
+  <rect x="230" y="108" width="90" height="18" fill="#f9a825" rx="4"/>
+  <rect x="230" y="118" width="90" height="8" fill="#f9a825"/>
+  <text x="275" y="120" text-anchor="middle" fill="white" font-size="8" font-weight="bold">OVP</text>
+  <text x="275" y="142" text-anchor="middle" fill="#795548" font-size="9">Original</text>
+  <text x="275" y="155" text-anchor="middle" fill="#795548" font-size="9">Verpackung</text>
+  <!-- Haken auf Karton -->
+  <polyline points="258,170 268,182 292,158" stroke="#4caf50" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Großes Checkmark -->
+  <circle cx="350" cy="170" r="22" fill="#4caf50"/>
+  <polyline points="340,170 348,180 362,158" stroke="white" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Beschriftung A -->
+  <text x="240" y="240" text-anchor="middle" fill="#2e7d32" font-size="10" font-weight="bold">Keine Kratzer · Originalverpackung · vollständig</text>
+  <rect x="30" y="250" width="420" height="50" fill="#e8f5e9" rx="6"/>
+  <text x="240" y="268" text-anchor="middle" fill="#1b5e20" font-size="10">✔ Sofort wiederverkaufsfähig</text>
+  <text x="240" y="284" text-anchor="middle" fill="#388e3c" font-size="9">Artikel ist wie neu — geht direkt zurück ins Lager</text>
+  <text x="240" y="297" text-anchor="middle" fill="#388e3c" font-size="9">und kann ohne weitere Prüfung verkauft werden.</text>
+
+  <!-- ══════════ B-WARE ══════════ -->
+  <rect x="10" y="326" width="460" height="256" fill="white" rx="8" stroke="#ff9800" stroke-width="2"/>
+  <rect x="10" y="326" width="460" height="34" fill="#ff9800" rx="8"/>
+  <rect x="10" y="346" width="460" height="14" fill="#ff9800"/>
+  <text x="30" y="348" fill="white" font-size="18" font-weight="bold">B</text>
+  <text x="52" y="348" fill="white" font-size="13" font-weight="bold">B-Ware — Gebraucht</text>
+
+  <!-- Laptop Illustration B (Kratzer) -->
+  <rect x="60" y="372" width="140" height="100" fill="#1a1a2e" rx="6"/>
+  <rect x="65" y="377" width="130" height="88" fill="#0d47a1"/>
+  <rect x="65" y="377" width="130" height="20" fill="white" opacity="0.05" rx="2"/>
+  <rect x="110" y="402" width="40" height="30" fill="#1565c0" rx="3"/>
+  <rect x="115" y="407" width="30" height="20" fill="#42a5f5" rx="2"/>
+  <!-- Kratzer auf Bildschirm -->
+  <line x1="80" y1="382" x2="100" y2="400" stroke="white" stroke-width="1.5" opacity="0.6"/>
+  <line x1="145" y1="390" x2="155" y2="410" stroke="white" stroke-width="1" opacity="0.5"/>
+  <!-- Kratzer auf Gehäuse -->
+  <rect x="50" y="472" width="160" height="12" fill="#e0e0e0" rx="3"/>
+  <rect x="55" y="473" width="150" height="10" fill="#bdbdbd" rx="2"/>
+  <line x1="80" y1="473" x2="95" y2="482" stroke="#9e9e9e" stroke-width="1.5"/>
+  <line x1="120" y1="474" x2="130" y2="480" stroke="#9e9e9e" stroke-width="1.5"/>
+  <!-- Zerrissene Verpackung -->
+  <rect x="230" y="372" width="90" height="100" fill="#fff9c4" rx="4" stroke="#f9a825" stroke-width="1.5"/>
+  <rect x="230" y="372" width="90" height="18" fill="#f9a825" rx="4"/>
+  <rect x="230" y="382" width="90" height="8" fill="#f9a825"/>
+  <text x="275" y="384" text-anchor="middle" fill="white" font-size="8" font-weight="bold">OVP</text>
+  <!-- Riss in der Verpackung -->
+  <polyline points="240,400 255,412 248,422 265,435 258,448 275,455" stroke="#795548" stroke-width="2" fill="none" opacity="0.6"/>
+  <line x1="285" y1="395" x2="310" y2="400" stroke="#795548" stroke-width="1.5" opacity="0.5"/>
+  <!-- Ausrufezeichen -->
+  <circle cx="350" cy="432" r="22" fill="#ff9800"/>
+  <text x="350" y="440" text-anchor="middle" fill="white" font-size="24" font-weight="bold">!</text>
+
+  <!-- Beschriftung B -->
+  <text x="240" y="502" text-anchor="middle" fill="#e65100" font-size="10" font-weight="bold">Kratzer sichtbar · Verpackung fehlt/beschädigt</text>
+  <rect x="30" y="512" width="420" height="58" fill="#fff8e1" rx="6"/>
+  <text x="240" y="530" text-anchor="middle" fill="#bf360c" font-size="10">⚠ Weitere Prüfung erforderlich</text>
+  <text x="240" y="546" text-anchor="middle" fill="#e65100" font-size="9">Artikel hat optische Mängel, ist aber technisch funktionsfähig.</text>
+  <text x="240" y="559" text-anchor="middle" fill="#e65100" font-size="9">Geht ins Prüflager — Umtausch/Erstattung nur nach Freigabe.</text>
+  <text x="240" y="572" text-anchor="middle" fill="#e65100" font-size="9">Kann als B-Ware günstiger weiterverkauft werden.</text>
+
+  <!-- ══════════ C-WARE ══════════ -->
+  <rect x="10" y="594" width="460" height="250" fill="white" rx="8" stroke="#f44336" stroke-width="2"/>
+  <rect x="10" y="594" width="460" height="34" fill="#f44336" rx="8"/>
+  <rect x="10" y="614" width="460" height="14" fill="#f44336"/>
+  <text x="30" y="616" fill="white" font-size="18" font-weight="bold">C</text>
+  <text x="52" y="616" fill="white" font-size="13" font-weight="bold">C-Ware — Defekt</text>
+
+  <!-- Laptop Illustration C (kaputt) -->
+  <rect x="60" y="640" width="140" height="100" fill="#1a1a2e" rx="6"/>
+  <rect x="65" y="645" width="130" height="88" fill="#263238"/>
+  <!-- Riss im Bildschirm -->
+  <line x1="75" y1="650" x2="110" y2="700" stroke="#ef9a9a" stroke-width="2.5"/>
+  <line x1="110" y1="700" x2="145" y2="660" stroke="#ef9a9a" stroke-width="2"/>
+  <line x1="110" y1="700" x2="130" y2="730" stroke="#ef9a9a" stroke-width="1.5"/>
+  <line x1="95" y1="675" x2="160" y2="690" stroke="#ef9a9a" stroke-width="1" opacity="0.6"/>
+  <!-- Gehäuse deformiert -->
+  <rect x="50" y="740" width="160" height="12" fill="#e0e0e0" rx="3"/>
+  <polygon points="80,740 95,740 90,752 75,752" fill="#bdbdbd"/>
+  <!-- Gebrochene Ecke am Gehäuse -->
+  <polygon points="50,740 65,740 60,752 50,748" fill="#9e9e9e"/>
+  <!-- Zerstörter Karton -->
+  <rect x="232" y="640" width="86" height="96" fill="#efebe9" rx="4" stroke="#bcaaa4" stroke-width="1.5"/>
+  <polygon points="232,640 280,640 318,640 318,680 290,680 290,736 232,736" fill="#efebe9" stroke="#bcaaa4" stroke-width="1"/>
+  <!-- Eindrücke / Schäden -->
+  <line x1="245" y1="655" x2="300" y2="700" stroke="#795548" stroke-width="2.5"/>
+  <line x1="300" y1="655" x2="245" y2="700" stroke="#795548" stroke-width="2.5"/>
+  <!-- X Symbol -->
+  <circle cx="350" cy="698" r="22" fill="#f44336"/>
+  <line x1="340" y1="688" x2="360" y2="708" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="360" y1="688" x2="340" y2="708" stroke="white" stroke-width="3.5" stroke-linecap="round"/>
+
+  <!-- Beschriftung C -->
+  <text x="240" y="768" text-anchor="middle" fill="#c62828" font-size="10" font-weight="bold">Starke Beschädigungen · Bildschirmriss · nicht funktionsfähig</text>
+  <rect x="30" y="778" width="420" height="50" fill="#ffebee" rx="6"/>
+  <text x="240" y="796" text-anchor="middle" fill="#b71c1c" font-size="10">✖ Nicht wiederverkaufsfähig</text>
+  <text x="240" y="812" text-anchor="middle" fill="#c62828" font-size="9">Artikel ist defekt oder stark beschädigt — geht ins Schrottlager.</text>
+  <text x="240" y="825" text-anchor="middle" fill="#c62828" font-size="9">Kein Wiederverkauf möglich. Entsorgung oder Garantieprüfung.</text>
+
+  <!-- Footer -->
+  <text x="240" y="852" text-anchor="middle" fill="#bbb" font-size="7">MSV Systemhaus Martin Schlaak GmbH © 2026</text>
+
+</svg>

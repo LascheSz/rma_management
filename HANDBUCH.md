@@ -37,14 +37,15 @@ Dieses Dokument beschreibt jeden Schritt im RMA-Prozess so, dass eine neue Perso
 
 ### Wer darf was?
 
-| Aktion | RMA Benutzer | RMA Manager |
-|--------|:---:|:---:|
-| RMA erstellen | ja | ja |
-| Mengenprüfung durchführen | ja | ja |
-| Portal-Anfragen genehmigen | ja | ja |
-| KI-Klassifizierung nutzen | ja | ja |
-| Rückgabegründe anlegen | nein | ja |
-| RMA-Einstellungen ändern | nein | ja |
+
+| Aktion                      | RMA Benutzer | RMA Manager |
+| --------------------------- | :----------: | :---------: |
+| RMA erstellen               |      ja      |     ja     |
+| Mengenprüfung durchführen |      ja      |     ja     |
+| Portal-Anfragen genehmigen  |      ja      |     ja     |
+| KI-Klassifizierung nutzen   |      ja      |     ja     |
+| Rückgabegründe anlegen    |     nein     |     ja     |
+| RMA-Einstellungen ändern   |     nein     |     ja     |
 
 Wenn eine Funktion nicht sichtbar ist oder ein Fehler "Zugriff verweigert" erscheint, fehlt die Berechtigung. Dann beim Administrator melden.
 
@@ -112,7 +113,7 @@ Kunde erhält E-Mail                         │
 Der Kunde öffnet in seinem Browser die Adresse:
 
 ```
-https://[eure-odoo-domain]/rma/anfrage
+https://[odoo-domain]/rma/anfrage
 ```
 
 Er sieht ein Formular mit zwei Feldern:
@@ -123,6 +124,7 @@ Er sieht ein Formular mit zwei Feldern:
 Nach dem Klick auf "Weiter" prüft das System, ob die E-Mail-Adresse zur angegebenen Rechnung gehört. Stimmt beides überein, sieht der Kunde eine Liste aller Artikel aus dieser Rechnung.
 
 Der Kunde:
+
 1. Trägt bei jedem Artikel die Menge ein, die er zurückgeben möchte
 2. Wählt einen Rückgabegrund aus der Liste
 3. Kann optional eine Beschreibung des Problems eingeben
@@ -139,6 +141,7 @@ Hier erscheint die neue Anfrage des Kunden mit Status **"Eingereicht"**.
 **Schritt 1: Anfrage öffnen**
 
 Auf die Anfrage in der Liste klicken. Die Detailansicht zeigt:
+
 - Kundendaten (Name, E-Mail)
 - Rechnung
 - Welche Artikel in welcher Menge zurückgegeben werden sollen
@@ -148,6 +151,7 @@ Auf die Anfrage in der Liste klicken. Die Detailansicht zeigt:
 **Schritt 2: Prüfen**
 
 Überlegen, ob die Anfrage genehmigt werden kann:
+
 - Stimmen die Mengen?
 - Ist der Rückgabegrund plausibel?
 - Ist der Artikel noch innerhalb der Rückgabefrist?
@@ -157,6 +161,7 @@ Auf die Anfrage in der Liste klicken. Die Detailansicht zeigt:
 Oben auf **"Genehmigen & E-Mail senden"** klicken.
 
 Das System:
+
 - Setzt den Status auf "Genehmigt"
 - Schickt dem Kunden automatisch eine E-Mail mit der Rücksendeadresse und einem Hinweis, die Anfragenummer auf das Paket zu schreiben
 
@@ -164,7 +169,16 @@ Der grüne Hinweis oben in der Maske erklärt: Sobald die Ware eingetroffen ist,
 
 **Schritt 3b: Ablehnen**
 
-Auf **"Ablehnen"** klicken. Es kann ein Ablehnungsgrund eingetragen werden (optional). Der Kunde wird nicht automatisch informiert — das muss manuell per E-Mail oder Telefon geschehen.
+1. Auf **"Ablehnen"** klicken → ein Popup öffnet sich
+2. **Ablehnungsgrund** eingeben (Pflichtfeld) — z. B. "Rückgabefrist abgelaufen", "Artikel zeigt keine Mängel", "Fehlende Kaufbelege"
+3. Auf **"Ablehnen & E-Mail senden"** klicken
+
+Das System:
+- Setzt den Status auf "Abgelehnt"
+- Speichert den Ablehnungsgrund an der Anfrage
+- Schickt dem Kunden automatisch eine E-Mail mit dem eingetragenen Grund
+
+> **Hinweis:** Der Ablehnungsgrund ist Pflicht — ohne Eingabe kann nicht abgelehnt werden. So ist sichergestellt, dass der Kunde immer eine nachvollziehbare Begründung erhält.
 
 ---
 
@@ -192,10 +206,12 @@ Das ist das erste und wichtigste Feld. Hier wird entweder eine Portal-Anfrage od
   - `[Auftrag] S00042` — Verkaufsaufträge
 
 **Bei Auswahl einer Portal-Anfrage:**
+
 - Verkaufsauftrag, Rückgabegrund und Rückgabemengen werden automatisch vorbelegt
 - Alle Felder können danach noch angepasst werden
 
 **Bei Auswahl eines Verkaufsauftrags:**
+
 - Nur der Auftrag wird gesetzt, der Rest muss manuell ausgefüllt werden
 
 **Feld "RMA-Grund":**
@@ -210,13 +226,14 @@ Werden automatisch aus dem Verkaufsauftrag geladen — Adresse, E-Mail, Telefon,
 
 Die Tabelle zeigt alle Artikel aus dem Verkaufsauftrag. Für jeden Artikel:
 
-| Spalte | Bedeutung |
-|--------|-----------|
-| Artikel | Name des Produkts (nicht änderbar) |
-| Bestellt | Ursprünglich bestellte Menge |
-| Bereits retourniert | Mengen aus früheren RMAs zu diesem Auftrag |
-| Noch möglich | Maximale Rückgabemenge (automatisch berechnet) |
-| Rückgabemenge | Hier die tatsächliche Rückgabemenge eintragen |
+
+| Spalte              | Bedeutung                                       |
+| ------------------- | ----------------------------------------------- |
+| Artikel             | Name des Produkts (nicht änderbar)             |
+| Bestellt            | Ursprünglich bestellte Menge                   |
+| Bereits retourniert | Mengen aus früheren RMAs zu diesem Auftrag     |
+| Noch möglich       | Maximale Rückgabemenge (automatisch berechnet) |
+| Rückgabemenge      | Hier die tatsächliche Rückgabemenge eintragen |
 
 Bei serialisierten Artikeln erscheint zusätzlich ein Barcode-Icon. Darauf klicken, um konkrete Seriennummern auszuwählen (→ siehe Abschnitt 7).
 
@@ -229,6 +246,7 @@ Unten im Kundenblock wird die Frist angezeigt. Ist sie abgelaufen, erscheint ein
 Wenn alles ausgefüllt ist, oben auf **"Lieferschein erstellen"** klicken.
 
 Das System:
+
 - Legt einen RMA-Eingangsbeleg im Lager an
 - Verknüpft ihn mit dem Verkaufsauftrag
 - Setzt die Portal-Anfrage (falls vorhanden) auf "In Bearbeitung"
@@ -278,15 +296,16 @@ Auf den Beleg klicken.
 
 Die Tabelle zeigt alle Artikel des RMA-Eingangs. Für jede Position müssen die Mengen auf A-, B- und C-Ware aufgeteilt werden:
 
-| Spalte | Bedeutung |
-|--------|-----------|
-| Artikel | Produktname |
-| Retourenmenge | Menge laut Eingangsbeleg (Vorgabe) |
-| A-Ware | Neuwertige, direkt wiederverkaufbare Ware |
-| B-Ware | Prüfbedürftig, leichte Mängel, reparierbar |
-| C-Ware | Defekt, nicht mehr verkaufsfähig |
-| Umtausch | Vorgemerkt für Tauschlieferung (nur Dokumentation) |
-| Rückerstattung | Vorgemerkt für Gutschrift (nur Dokumentation) |
+
+| Spalte          | Bedeutung                                           |
+| --------------- | --------------------------------------------------- |
+| Artikel         | Produktname                                         |
+| Retourenmenge   | Menge laut Eingangsbeleg (Vorgabe)                  |
+| A-Ware          | Neuwertige, direkt wiederverkaufbare Ware           |
+| B-Ware          | Prüfbedürftig, leichte Mängel, reparierbar       |
+| C-Ware          | Defekt, nicht mehr verkaufsfähig                   |
+| Umtausch        | Vorgemerkt für Tauschlieferung (nur Dokumentation) |
+| Rückerstattung | Vorgemerkt für Gutschrift (nur Dokumentation)      |
 
 **Wichtige Regel:** Die Summe aus A-Ware + B-Ware + C-Ware muss gleich der Retourenmenge sein. Das System prüft das beim Klick auf "Durchführen".
 
@@ -313,6 +332,7 @@ Bei serialisierten Artikeln erscheint ein Barcode-Icon. Darauf klicken öffnet d
 Wenn alle Positionen ausgefüllt sind, auf **"Durchführen"** klicken.
 
 Das System:
+
 - Prüft, ob alle Summen stimmen
 - Validiert den RMA-Eingang
 - Erzeugt automatisch Folgebelege für A-, B- und C-Ware
@@ -342,17 +362,19 @@ In der Mengenprüfungs-Tabelle das Barcode-Icon in der entsprechenden Zeile ankl
 
 Es erscheint eine Liste aller Seriennummern dieser Position. Für jede Seriennummer eine Klasse wählen:
 
-| Auswahl | Bedeutung |
-|---------|-----------|
-| A-Ware | Neuwertig |
-| B-Ware | Prüfbedürftig |
-| C-Ware | Defekt |
+
+| Auswahl | Bedeutung       |
+| ------- | --------------- |
+| A-Ware  | Neuwertig       |
+| B-Ware  | Prüfbedürftig |
+| C-Ware  | Defekt          |
 
 Alternativ: Barcode-Scanner verwenden. Im Feld "Seriennummer scannen" die Seriennummer einscannen — sie wird automatisch zur richtigen Position zugeordnet.
 
 ### 7.3 Übernehmen
 
 Auf **"Übernehmen"** klicken. Das System:
+
 - Überträgt die Mengen automatisch in die A/B/C-Felder der Prüfposition
 - Speichert welche konkrete Seriennummer welche Klasse bekommen hat
 - Die Klasse ist später auf dem Folgebeleg und im Lagerbeleg sichtbar
@@ -387,6 +409,7 @@ Je mehr Kontext, desto genauer die Einschätzung.
 ### 8.4 Klassifizieren
 
 Auf **"Klassifizieren"** klicken. Die KI analysiert das Foto und gibt eine Empfehlung aus:
+
 - Vorgeschlagene Klasse (A/B/C)
 - Kurze Begründung auf Deutsch
 
@@ -451,6 +474,7 @@ Für jede B-Ware-Position wird nach der Mengenprüfung automatisch ein Reparatur
 ### 10.2 Reparaturauftrag bearbeiten
 
 Im Reparaturauftrag kann der weitere Prozess gesteuert werden:
+
 - Reparatur starten
 - Ersatzteile hinzufügen
 - Reparatur abschließen
@@ -464,15 +488,22 @@ Die Reparaturaufträge sind vollständige Odoo-`repair.order`-Belege — alle no
 
 **Navigation:** **RMA Management** → **Portal-Anfragen**
 
+### Benachrichtigungen bei neuen Anfragen
+
+Sobald ein Kunde eine Anfrage einreicht, erhalten alle Nutzer der Gruppen **RMA Benutzer** und **RMA Manager** automatisch eine Odoo-Benachrichtigung. Das rote Glockensymbol oben rechts zeigt die Anzahl der ungelesenen Benachrichtigungen — Klick darauf öffnet direkt die betreffende Anfrage.
+
+> Abteilungsleiter mit RMA-Manager-Rolle werden also ebenfalls sofort informiert.
+
 ### Status-Übersicht
 
-| Status | Bedeutung | Nächste Aktion |
-|--------|-----------|----------------|
-| Eingereicht | Neu vom Kunden | Prüfen und genehmigen oder ablehnen |
-| Genehmigt | Genehmigt, Kunde informiert | Warten auf Wareneingang, dann RMA erstellen |
-| In Bearbeitung | RMA-Eingang wurde angelegt | Mengenprüfung durchführen |
-| Erledigt | Prozess abgeschlossen | Keine |
-| Abgelehnt | Anfrage abgelehnt | Keine |
+
+| Status         | Bedeutung                   | Nächste Aktion                             |
+| -------------- | --------------------------- | ------------------------------------------- |
+| Eingereicht    | Neu vom Kunden              | Prüfen und genehmigen oder ablehnen        |
+| Genehmigt      | Genehmigt, Kunde informiert | Warten auf Wareneingang, dann RMA erstellen |
+| In Bearbeitung | RMA-Eingang wurde angelegt  | Mengenprüfung durchführen                 |
+| Erledigt       | Prozess abgeschlossen       | Keine                                       |
+| Abgelehnt      | Anfrage abgelehnt           | Keine                                       |
 
 ### Anfrage als erledigt markieren
 
@@ -490,45 +521,60 @@ Oben in der Listenansicht gibt es eine Suchleiste mit vordefinierten Filtern:
 
 ## 12. Auswertung und Statistik
 
-**Navigation:** **RMA Management** → **Auswertung**
+Es gibt zwei Wege zur Auswertung:
 
-Die Auswertung zeigt alle abgeschlossenen RMAs mit ihren Qualitätsklassen-Anteilen.
+---
 
-### Filtern
+### Weg A — Bericht erstellen (empfohlen)
 
-In der Suchleiste oben können Filter kombiniert werden:
+**Navigation:** **RMA Management** → **Auswertungen** → **Bericht erstellen**
 
-**Nach Kunde:**
-Auf das Suchfeld klicken → "Kunde" auswählen → Kundennamen eintippen
+Ein Konfigurationsdialog öffnet sich. Hier wählst du genau aus, was du sehen möchtest:
 
-**Nach Artikel:**
-Auf das Suchfeld klicken → "Artikel" auswählen → Artikelname eintippen
+| Feld | Funktion |
+|------|----------|
+| **Kunden** | Einen oder mehrere Kunden auswählen — leer lassen = alle |
+| **Artikel** | Einen oder mehrere Artikel auswählen — leer lassen = alle |
+| **Rückgabegründe** | Filtern nach bestimmten Gründen |
+| **Von / Bis** | Zeitraum einschränken |
+| **A-Ware / B-Ware / C-Ware** | Checkboxen — welche Klassen im Diagramm erscheinen |
+| **X-Achse** | Was auf der X-Achse steht: Kunde, Artikel, Monat, Quartal, Rückgabegrund oder Hauptklasse |
+| **Diagrammtyp** | Balken, Linie oder Torte |
 
-**Nach Q-Klasse:**
-Auf das Dropdown "Filter" klicken:
-- "Nur A-Ware" — zeigt nur Einträge wo A-Ware die dominante Klasse ist
-- "Nur B-Ware" — zeigt nur B-Ware-dominante Einträge
-- "Nur C-Ware" — zeigt nur C-Ware-dominante Einträge
+Nach Klick auf **"Bericht anzeigen"** öffnet sich der Graph mit genau diesen Einstellungen.
 
-### Spalten
+**Beispiele:**
+- *Welcher Kunde hat am meisten C-Ware?* → Kunden leer lassen, X-Achse = Kunde, nur C-Ware anhaken
+- *Wie hat sich Artikel XY über das Jahr entwickelt?* → Artikel auswählen, X-Achse = Monat, alle Klassen
+- *Vergleich zweier Kunden:* → Beide Kunden auswählen, X-Achse = Kunde
 
-| Spalte | Bedeutung |
-|--------|-----------|
-| Beleg | RMA-Eingangsbeleg |
-| Kunde | Kundenname |
-| Artikel | Produktname |
-| A-Ware / B-Ware / C-Ware | absolute Mengen |
-| A % / B % / C % | prozentuale Anteile |
-| Dominant | Welche Klasse überwiegt |
-| Datum | Wann die Mengenprüfung abgeschlossen wurde |
+---
 
-### Gruppieren
+### Weg B — Direktansicht
 
-Über das Dropdown "Gruppieren nach" können die Einträge zusammengefasst werden:
+**Navigation:** **RMA Management** → **Auswertungen** → **Qualitätsauswertung**
+
+Öffnet direkt die Graphansicht, vorgruppiert nach Monat und Qualitätsklasse. Über das Dropdown **"Gruppieren nach"** lässt sich die Ansicht anpassen:
+
 - Nach Kunde
 - Nach Artikel
 - Nach Q-Klasse
-- Nach Monat
+- Nach Monat / Quartal / Jahr
+- Nach Rückgabegrund
+
+Mehrere Gruppierungen können kombiniert werden (z. B. Monat + Qualitätsklasse = Balken pro Monat mit A/B/C-Aufteilung).
+
+### Spalten (Listenansicht)
+
+| Spalte                   | Bedeutung                                   |
+| ------------------------ | ------------------------------------------- |
+| Beleg                    | RMA-Eingangsbeleg                           |
+| Kunde                    | Kundenname                                  |
+| Artikel                  | Produktname                                 |
+| A-Ware / B-Ware / C-Ware | absolute Mengen                             |
+| A % / B % / C %          | prozentuale Anteile                         |
+| Dominant                 | Welche Klasse überwiegt                    |
+| Datum                    | Wann die Mengenprüfung abgeschlossen wurde |
 
 ---
 
@@ -565,10 +611,11 @@ Die KI-Schlüssel werden nicht im RMA-Modul selbst eingestellt, sondern in den g
 
 **Navigation:** **Einstellungen** → **Technisch** → **Parameter** → **Systemparameter**
 
-| Schlüssel | Wert |
-|-----------|------|
+
+| Schlüssel      | Wert                       |
+| --------------- | -------------------------- |
 | `ai.openai_key` | OpenAI API-Key (bevorzugt) |
-| `ai.google_key` | Google API-Key (Fallback) |
+| `ai.google_key` | Google API-Key (Fallback)  |
 
 Ist keiner hinterlegt, erscheint beim Öffnen des KI-Inspektors eine Fehlermeldung.
 
@@ -579,6 +626,7 @@ Ist keiner hinterlegt, erscheint beim Öffnen des KI-Inspektors eine Fehlermeldu
 Hier muss ein SMTP-Server konfiguriert sein, damit Kunden die Genehmigungs-E-Mail erhalten. Ohne Mailserver schlägt der E-Mail-Versand fehl.
 
 Typische Konfiguration:
+
 - Host: `mail.firmen-domain.de`
 - Port: `465` (SSL/TLS) oder `587` (STARTTLS)
 - Authentifizierung: Benutzername
@@ -668,22 +716,23 @@ Kunden brauchen **keinen** Odoo-Account. Das Portal `/rma/anfrage` ist öffentli
 
 ## Anhang — Schnellübersicht Navigations-Pfade
 
-| Aufgabe | Navigationspfad |
-|---------|----------------|
-| Portal-Anfragen bearbeiten | RMA Management → Portal-Anfragen |
-| RMA erstellen | RMA Management → Erstellung |
-| RMA aus Verkaufsauftrag | Verkauf → Aufträge → Auftrag → "RMA erstellen" |
-| Mengenprüfung | RMA Management → Mengenprüfung |
-| Reparaturaufträge | Reparatur → Reparaturaufträge |
-| Auswertung | RMA Management → Auswertung |
-| Audit-Log | RMA Management → Übersicht → Audit-Log |
-| Rückgabegründe | RMA Management → Rückgabegründe |
-| RMA-Einstellungen | Lager → Konfiguration → Einstellungen → RMA Management |
-| Mailserver | Einstellungen → Technisch → Ausgehende Mailserver |
-| API-Keys (KI) | Einstellungen → Technisch → Parameter → Systemparameter |
-| Individuelle Rückgabefrist | Verkauf → Kunden → Kunde → "Rückgabefrist (Tage)" |
-| Benutzerrechte | Einstellungen → Benutzer → Benutzer → "RMA Management" |
-| Portal-URL für Kunden | /rma/anfrage |
+
+| Aufgabe                     | Navigationspfad                                            |
+| --------------------------- | ---------------------------------------------------------- |
+| Portal-Anfragen bearbeiten  | RMA Management → Portal-Anfragen                          |
+| RMA erstellen               | RMA Management → Erstellung                               |
+| RMA aus Verkaufsauftrag     | Verkauf → Aufträge → Auftrag → "RMA erstellen"         |
+| Mengenprüfung              | RMA Management → Mengenprüfung                           |
+| Reparaturaufträge          | Reparatur → Reparaturaufträge                            |
+| Auswertung                  | RMA Management → Auswertung                               |
+| Audit-Log                   | RMA Management → Übersicht → Audit-Log                  |
+| Rückgabegründe            | RMA Management → Rückgabegründe                         |
+| RMA-Einstellungen           | Lager → Konfiguration → Einstellungen → RMA Management  |
+| Mailserver                  | Einstellungen → Technisch → Ausgehende Mailserver        |
+| API-Keys (KI)               | Einstellungen → Technisch → Parameter → Systemparameter |
+| Individuelle Rückgabefrist | Verkauf → Kunden → Kunde → "Rückgabefrist (Tage)"      |
+| Benutzerrechte              | Einstellungen → Benutzer → Benutzer → "RMA Management"  |
+| Portal-URL für Kunden      | /rma/anfrage                                               |
 
 ---
 

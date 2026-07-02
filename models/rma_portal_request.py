@@ -1,3 +1,5 @@
+import base64
+
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
@@ -32,7 +34,27 @@ class RmaPortalRequest(models.Model):
         for vals in vals_list:
             if vals.get('name', 'Neu') == 'Neu':
                 vals['name'] = self.env['ir.sequence'].next_by_code('rma.portal.request') or 'Neu'
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        records._notify_rma_users_new_request()
+        return records
+
+    def _notify_rma_users_new_request(self):
+        rma_user_group = self.env.ref('rma_management.group_rma_user').sudo()
+        rma_manager_group = self.env.ref('rma_management.group_rma_manager').sudo()
+        partner_ids = (rma_user_group.user_ids | rma_manager_group.user_ids).mapped('partner_id').ids
+        if not partner_ids:
+            return
+        for rec in self:
+            rec.sudo().message_subscribe(partner_ids=partner_ids)
+            rec.sudo().message_post(
+                body=_(
+                    'Neue Portal-Anfrage <b>%s</b> von <b>%s</b> wurde eingereicht.',
+                    rec.name,
+                    rec.partner_id.name,
+                ),
+                message_type='comment',
+                subtype_xmlid='mail.mt_comment',
+            )
 
     def action_approve(self):
         """Genehmigt die Anfrage und schickt dem Kunden eine Bestätigungs-E-Mail."""
@@ -113,18 +135,104 @@ class RmaPortalRequest(models.Model):
   </div>
 </div>"""
 
+        report = self.env['ir.actions.report'].sudo()
+        pdf_content, _ = report._render_qweb_pdf(
+            'rma_management.action_report_rma_portal_request',
+            res_ids=[self.id],
+        )
+        attachment = self.env['ir.attachment'].sudo().create({
+            'name': f'Rücksendeschein-{self.name}.pdf',
+            'type': 'binary',
+            'datas': base64.b64encode(pdf_content),
+            'mimetype': 'application/pdf',
+            'res_model': self._name,
+            'res_id': self.id,
+        })
+
         mail_values = {
             'subject': f'Ihre RMA-Anfrage {self.name} wurde genehmigt',
             'email_to': self.partner_id.email,
             'email_from': company.email or self.env.user.email,
             'body_html': body,
+            'attachment_ids': [(4, attachment.id)],
             'auto_delete': True,
         }
         self.env['mail.mail'].create(mail_values).send()
 
     def action_reject(self):
         self.ensure_one()
-        self.write({'state': 'rejected'})
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Anfrage ablehnen'),
+            'res_model': 'rma.reject.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'default_request_id': self.id},
+        }
+
+    def _send_rejection_email(self, reason):
+        """Schickt dem Kunden eine E-Mail mit dem Ablehnungsgrund."""
+        self.ensure_one()
+        if not self.partner_id.email:
+            return
+
+        company = self.env.company
+        article_rows = ''.join(
+            f'<tr style="border-bottom:1px solid #eee;">'
+            f'<td style="padding:8px 12px;">{line.product_id.display_name}</td>'
+            f'<td style="padding:8px 12px;text-align:right;">{line.qty_requested}</td>'
+            f'</tr>'
+            for line in self.line_ids
+        )
+
+        body = f"""
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+  <div style="background:#c0392b;padding:24px 32px;border-radius:8px 8px 0 0;">
+    <h2 style="color:#fff;margin:0;font-size:1.3rem;">RMA-Anfrage abgelehnt</h2>
+  </div>
+  <div style="background:#fff;border:1px solid #e0e0e0;border-top:none;padding:28px 32px;border-radius:0 0 8px 8px;">
+    <p>Guten Tag {self.partner_id.name},</p>
+    <p>leider müssen wir Ihre RMA-Anfrage ablehnen.</p>
+
+    <div style="background:#f5f6f8;border-radius:8px;padding:16px 20px;margin:20px 0;">
+      <table style="width:100%;border-collapse:collapse;">
+        <tr><td style="color:#888;padding:4px 0;width:40%;">Anfrage-Nr.</td>
+            <td style="font-weight:bold;">{self.name}</td></tr>
+        <tr><td style="color:#888;padding:4px 0;">Rechnung</td>
+            <td>{self.invoice_id.name}</td></tr>
+        <tr><td style="color:#888;padding:4px 0;">Rückgabegrund</td>
+            <td>{self.rma_reason_id.name}</td></tr>
+      </table>
+    </div>
+
+    <h3 style="font-size:1rem;margin-top:24px;">Angegebene Artikel</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+      <thead>
+        <tr style="background:#f0eaf3;">
+          <th style="text-align:left;padding:8px 12px;">Artikel</th>
+          <th style="text-align:right;padding:8px 12px;">Menge</th>
+        </tr>
+      </thead>
+      <tbody>{article_rows}</tbody>
+    </table>
+
+    <div style="background:#fdecea;border:1px solid #e74c3c;border-radius:6px;padding:14px 18px;margin:24px 0;">
+      <strong>Grund der Ablehnung:</strong><br/>
+      {reason}
+    </div>
+
+    <p>Bei Fragen stehen wir Ihnen gerne zur Verfügung.</p>
+    <p>Mit freundlichen Grüßen<br/>{company.name}</p>
+  </div>
+</div>"""
+
+        self.env['mail.mail'].create({
+            'subject': f'Ihre RMA-Anfrage {self.name} wurde abgelehnt',
+            'email_to': self.partner_id.email,
+            'email_from': company.email or self.env.user.email,
+            'body_html': body,
+            'auto_delete': True,
+        }).send()
 
     def action_mark_done(self):
         self.ensure_one()

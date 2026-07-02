@@ -18,3 +18,5 @@ access_rma_portal_request_public,rma.portal.request.public,model_rma_portal_requ
 access_rma_portal_request_line_user,rma.portal.request.line.user,model_rma_portal_request_line,rma_management.group_rma_user,1,1,1,1
 access_rma_portal_request_line_public,rma.portal.request.line.public,model_rma_portal_request_line,base.group_public,0,0,1,0
 access_rma_ref_proxy_user,rma.ref.proxy.user,model_rma_ref_proxy,rma_management.group_rma_user,1,0,0,0
+access_rma_report_wizard_user,rma.report.wizard.user,model_rma_report_wizard,rma_management.group_rma_user,1,1,1,1
+access_rma_reject_wizard_user,rma.reject.wizard.user,model_rma_reject_wizard,rma_management.group_rma_user,1,1,1,1

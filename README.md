@@ -87,7 +87,9 @@ Kunde → Portal /rma/anfrage    ODER    Mitarbeiter direkt
 | Seriennummernverfolgung | Q-Klasse pro Seriennummer, Barcode-Scanner |
 | Reparaturaufträge | B-Ware erzeugt automatisch `repair.order` |
 | Rückgabefristkontrolle | Pro Kunde konfigurierbar, Bestätigungsdialog bei Überschreitung |
-| Auswertung | Filtern nach Kunde, Artikel, Q-Klasse, Prozentanteile |
+| Auswertung | Konfigurierbarer Berichts-Wizard: Kunden, Artikel, Klassen, Zeitraum, Diagrammtyp frei wählbar |
+| Ablehnung per E-Mail | Ablehnungsgrund eingeben → Kunde erhält automatisch eine E-Mail |
+| Odoo-Benachrichtigungen | RMA Benutzer und Manager werden bei neuen Portal-Anfragen automatisch benachrichtigt |
 | Audit-Trail | Vollständiges Protokoll aller RMA-Ereignisse |
 
 ---
@@ -169,6 +171,8 @@ Kunden können unter **`/rma/anfrage`** eigenständig eine Rückgabe beantragen 
 5. Absenden → Bestätigungsseite
 ```
 
+Sobald eine neue Anfrage eingeht, erhalten alle Nutzer der Gruppen **RMA Benutzer** und **RMA Manager** automatisch eine Odoo-Benachrichtigung (Glockensymbol oben rechts).
+
 **Ablauf im Backend (Mitarbeiter):**
 
 ```
@@ -177,6 +181,11 @@ Portal-Anfragen → Anfrage öffnen
     ├── Positionen und gewünschte Mengen prüfen
     ├── "Genehmigen & E-Mail senden"
     │       └── Kunde erhält E-Mail mit Rücksendeadresse und Anfrage-Nr.
+    │
+    ├── "Ablehnen"
+    │       └── Popup: Ablehnungsgrund eingeben (Pflichtfeld)
+    │       └── Klick auf "Ablehnen & E-Mail senden"
+    │               └── Status → Abgelehnt, Kunde erhält E-Mail mit dem eingetragenen Grund
     │
     └── Nach Wareneingang: In RMA-Erstellung die Anfrage als Referenz auswählen
             └── Mengen werden automatisch vorbelegt (anpassbar)
@@ -326,16 +335,29 @@ Ist die Frist abgelaufen, erscheint beim Erstellen ein Bestätigungsdialog. Der 
 
 ## Auswertung
 
-**Wo:** RMA Management → Auswertung
+**Wo:** RMA Management → Auswertungen → Qualitätsauswertung / Bericht erstellen
 
-Filterbar nach:
+### Bericht erstellen (Wizard)
 
-- Kunde
-- Artikel
-- Q-Klasse (Nur A-Ware / Nur B-Ware / Nur C-Ware / Gemischt)
-- Datum
+Über **Auswertungen → Bericht erstellen** lässt sich ein individueller Bericht konfigurieren:
 
-Jeder Eintrag zeigt Prozentanteile (A/B/C) und die dominante Qualitätsklasse. Gruppierung nach Kunde, Artikel oder Q-Klasse möglich.
+| Feld | Funktion |
+|------|----------|
+| Kunden | Einer oder mehrere Kunden (leer = alle) |
+| Artikel | Einer oder mehrere Artikel (leer = alle) |
+| Rückgabegründe | Filtern nach Grund |
+| Von / Bis | Zeitraum einschränken |
+| A/B/C-Ware | Checkboxen — welche Klassen angezeigt werden |
+| X-Achse | Gruppierung: Kunde, Artikel, Monat, Quartal, Rückgabegrund oder Hauptklasse |
+| Diagrammtyp | Balken, Linie oder Torte |
+
+Nach Klick auf **"Bericht anzeigen"** öffnet sich der Graph exakt mit den gewählten Einstellungen. Wechsel zwischen Graph-, Pivot- und Listenansicht jederzeit möglich.
+
+### Qualitätsauswertung (Direktansicht)
+
+Öffnet direkt die Graphansicht gruppiert nach Monat und Qualitätsklasse. Über den Group-By-Filter sind weitere Vergleiche möglich (z. B. nach Kunde + Klasse).
+
+Jeder Eintrag zeigt absolute Mengen (A/B/C/Gesamt) und Prozentanteile.
 
 ---
 
