@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_repair_order_form_inherit_rma" model="ir.ui.view">
+        <field name="name">repair.order.form.inherit.rma</field>
+        <field name="model">repair.order</field>
+        <field name="inherit_id" ref="repair.view_repair_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='under_warranty']" position="after">
+                <field name="rma_repair_destination"
+                       invisible="not picking_id"
+                       widget="radio"
+                       readonly="state in ('done', 'cancel')"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

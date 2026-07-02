@@ -9,3 +9,6 @@ from . import rma_splitting
 from . import rma_ai_inspector
 from . import rma_portal_request
 from . import rma_ref_proxy
+from . import rma_report_wizard
+from . import rma_reject_wizard
+from . import rma_repair

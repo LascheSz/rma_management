@@ -11,6 +11,7 @@
     'depends': ['sale_management', 'stock', 'base', 'product', 'web', 'repair', 'portal', 'account', 'mail'],
     # Reihenfolge ist wichtig: Rechte/Daten zuerst, danach Views und Menüs.
     'data': [
+        'report/rma_portal_request_report.xml',
         'security/rma_security.xml',
         'security/ir.model.access.csv',
         'data/rma_stock_data.xml',
@@ -25,8 +26,11 @@
         'views/rma_overview.xml',
         'views/rma_audit.xml',
         'views/rma_analytics.xml',
+        'views/rma_report_wizard.xml',
+        'views/rma_reject_wizard.xml',
         'views/rma_portal_request_backend.xml',
         'views/rma_portal_templates.xml',
+        'views/rma_repair.xml',
     ],
     # Backend-Styles sind bewusst getrennt nach Grundlayout, Kundendaten,
     # Tabellen und Mengenprüfung, damit spätere UI-Änderungen gezielt bleiben.

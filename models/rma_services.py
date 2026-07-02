@@ -311,6 +311,10 @@ class RmaSplittingService(models.AbstractModel):
 
             new_picking.action_confirm()
             self._create_quality_serial_move_lines(serial_moves)
+
+            if field_name in ('rma_qty_a', 'rma_qty_c'):
+                self._auto_validate_picking(new_picking)
+
             created_pickings |= new_picking
 
         if not created_pickings:
@@ -335,6 +339,29 @@ class RmaSplittingService(models.AbstractModel):
                     'location_dest_id': move.location_dest_id.id,
                     'rma_quality_class': quality_class,
                 })
+
+    def _auto_validate_picking(self, picking):
+        """Setzt Mengen auf Move-Lines und validiert den Beleg automatisch."""
+        for move in picking.move_ids:
+            if move.move_line_ids.filtered('lot_id'):
+                # Seriennummern wurden bereits korrekt durch _create_quality_serial_move_lines gesetzt.
+                move.picked = True
+                continue
+            move_line = move.move_line_ids[:1]
+            if move_line:
+                move_line.quantity = move.product_uom_qty
+            else:
+                self.env['stock.move.line'].create({
+                    'picking_id': picking.id,
+                    'move_id': move.id,
+                    'product_id': move.product_id.id,
+                    'product_uom_id': move.product_uom.id,
+                    'quantity': move.product_uom_qty,
+                    'location_id': move.location_id.id,
+                    'location_dest_id': move.location_dest_id.id,
+                })
+            move.picked = True
+        picking._action_done()
 
     def _prepare_exchange(self, wizard):
         """Bereitet eine textuelle Übersicht für spätere Umtauschbearbeitung vor."""
